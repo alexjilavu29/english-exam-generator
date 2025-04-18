@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Exam Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .navbar {
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">English Exam Generator</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/questions">View Questions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/question/add">Add Question</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/generate">Generate Exam</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/ai_settings">AI Settings</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="jumbotron">
+                    <h1 class="display-4">English Exam Generator</h1>
+                    <p class="lead">A comprehensive system for managing and generating English exams.</p>
+                    <hr class="my-4">
+                    <p>This application allows you to view, modify, add, and remove questions from the database. You can also generate customized exams based on various criteria.</p>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                        <a href="/questions" class="btn btn-primary btn-lg me-md-2">View Questions</a>
+                        <a href="/generate" class="btn btn-success btn-lg">Generate Exam</a>
+                    </div>
+                </div>
+                
+                <!-- New card for AI reformatting feature -->
+                <div class="card mt-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">New Feature: AI Question Reformatting</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>You can now reformat exam questions using artificial intelligence to generate alternative formulations while preserving the original meaning and gap words.</p>
+                        <p>This feature can be found on each question's detail page by clicking the <span class="badge" style="background: linear-gradient(135deg, #6e8efb, #a777e3);">Reformat with AI</span> button.</p>
+                        <p><strong>To get started:</strong></p>
+                        <ol>
+                            <li>Configure your OpenAI API key in the <a href="/ai_settings">AI Settings</a> page</li>
+                            <li>View any question and click the "Reformat with AI" button</li>
+                            <li>Choose from three AI-generated reformulations</li>
+                        </ol>
+                        <div class="text-end">
+                            <a href="/ai_settings" class="btn btn-info">Configure AI Settings</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Details - English Exam Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .navbar {
+            margin-bottom: 2rem;
+        }
+        .answer {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        .correct-answer {
+            background-color: rgba(25, 135, 84, 0.15);
+            border-left: 4px solid #198754;
+        }
+        .ai-reformat-btn {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            border: none;
+            color: white;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: all 0.15s ease;
+        }
+        .ai-reformat-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+            background: linear-gradient(135deg, #5a7df8, #9666db);
+        }
+        .option-card {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        .option-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .option-card.selected {
+            border-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+        .revert-btn {
+            color: #dc3545;
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .revert-btn:hover {
+            text-decoration: underline;
+        }
+        .spinner-border {
+            width: 1.2rem;
+            height: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">English Exam Generator</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/questions">View Questions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/question/add">Add Question</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/generate">Generate Exam</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/ai_settings">AI Settings</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/questions">Questions</a></li>
+                        <li class="breadcrumb-item active">Question Details</li>
+                    </ol>
+                </nav>
+                
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-primary">{{ question.topic }}</span>
+                            <span class="badge bg-secondary">{{ question.category }} ({{ question.year }})</span>
+                            {% if 'tags' in question and 'Reformatted with AI' in question.tags %}
+                            <span class="badge bg-info">Reformatted with AI</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <a href="/question/{{ index }}/edit" class="btn btn-sm btn-warning">Edit</a>
+                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                Delete
+                            </button>
+                            <button id="reformatBtn" class="btn btn-sm ai-reformat-btn">
+                                <span id="reformatBtnText">Reformat with AI</span>
+                                <span id="reformatBtnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Question</h5>
+                        <p class="card-text" id="questionBody">{{ question.body }}</p>
+                        {% if 'tags' in question and 'Reformatted with AI' in question.tags %}
+                        <div>
+                            <a id="revertBtn" class="revert-btn"><small><i class="fas fa-undo"></i> Revert to original text</small></a>
+                        </div>
+                        {% endif %}
+                        
+                        <h5 class="card-title mt-4">Answer Options</h5>
+                        <div class="answers">
+                            {% for answer in question.answers %}
+                            <div class="answer {% if loop.index0 == question.correct_answer %}correct-answer{% endif %}">
+                                <strong>{{ loop.index }}.</strong> {{ answer }}
+                                {% if loop.index0 == question.correct_answer %}
+                                <span class="badge bg-success float-end">Correct Answer</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this question? This action cannot be undone.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form action="/question/{{ index }}/delete" method="post">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Reformatting Modal -->
+    <div class="modal fade" id="reformatModal" tabindex="-1" aria-labelledby="reformatModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reformatModalLabel">Choose a Reformulation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="reformatError" class="alert alert-danger d-none"></div>
+                    
+                    <div id="reformatOptions" class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card option-card" data-option="0">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">Option 1</h6>
+                                    <p class="card-text reformulation-text"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card option-card" data-option="1">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">Option 2</h6>
+                                    <p class="card-text reformulation-text"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card option-card" data-option="2">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">Option 3</h6>
+                                    <p class="card-text reformulation-text"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button id="regenerateBtn" type="button" class="btn btn-info">
+                        <span id="regenerateBtnText">Regenerate Options</span>
+                        <span id="regenerateBtnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    </button>
+                    <button id="applyReformatBtn" type="button" class="btn btn-primary" disabled>Apply Selected</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get elements
+            const reformatBtn = document.getElementById('reformatBtn');
+            const regenerateBtn = document.getElementById('regenerateBtn');
+            const applyReformatBtn = document.getElementById('applyReformatBtn');
+            const revertBtn = document.getElementById('revertBtn');
+            const reformatModal = new bootstrap.Modal(document.getElementById('reformatModal'));
+            const optionCards = document.querySelectorAll('.option-card');
+            const reformulationTexts = document.querySelectorAll('.reformulation-text');
+            const reformatError = document.getElementById('reformatError');
+            
+            // Spinners
+            const reformatBtnText = document.getElementById('reformatBtnText');
+            const reformatBtnSpinner = document.getElementById('reformatBtnSpinner');
+            const regenerateBtnText = document.getElementById('regenerateBtnText');
+            const regenerateBtnSpinner = document.getElementById('regenerateBtnSpinner');
+            
+            // Variables to store reformulations
+            let reformulations = [];
+            let selectedOption = null;
+            
+            // Get question index from URL
+            const urlParts = window.location.pathname.split('/');
+            const questionIndex = urlParts[urlParts.length - 1];
+            
+            // Toggle spinner function
+            function toggleLoading(btn, spinnerText, spinner, isLoading) {
+                if (isLoading) {
+                    spinnerText.classList.add('d-none');
+                    spinner.classList.remove('d-none');
+                    btn.disabled = true;
+                } else {
+                    spinnerText.classList.remove('d-none');
+                    spinner.classList.add('d-none');
+                    btn.disabled = false;
+                }
+            }
+            
+            // Function to get reformulations from the API
+            async function getReformulations(isRegenerate = false) {
+                const buttonToToggle = isRegenerate ? regenerateBtn : reformatBtn;
+                const buttonText = isRegenerate ? regenerateBtnText : reformatBtnText;
+                const buttonSpinner = isRegenerate ? regenerateBtnSpinner : reformatBtnSpinner;
+                
+                toggleLoading(buttonToToggle, buttonText, buttonSpinner, true);
+                
+                try {
+                    // Add a timestamp parameter to prevent caching
+                    const timestamp = new Date().getTime();
+                    const url = `/question/${questionIndex}/reformat?t=${timestamp}`;
+                    
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache'
+                        },
+                        body: JSON.stringify({
+                            regenerate: isRegenerate // Let the server know this is a regeneration request
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        reformulations = data.reformulations;
+                        
+                        // Update modal with reformulations
+                        reformulations.forEach((text, index) => {
+                            reformulationTexts[index].textContent = text;
+                        });
+                        
+                        // Clear any previous selection
+                        optionCards.forEach(card => {
+                            card.classList.remove('selected');
+                        });
+                        selectedOption = null;
+                        applyReformatBtn.disabled = true;
+                        
+                        // Show modal
+                        reformatError.classList.add('d-none');
+                        if (!isRegenerate) {
+                            reformatModal.show();
+                        }
+                    } else {
+                        // Show error
+                        reformatError.textContent = data.error || 'An error occurred while getting reformulations.';
+                        reformatError.classList.remove('d-none');
+                        if (!isRegenerate) {
+                            reformatModal.show();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    reformatError.textContent = 'An unexpected error occurred. Please try again later.';
+                    reformatError.classList.remove('d-none');
+                    if (!isRegenerate) {
+                        reformatModal.show();
+                    }
+                } finally {
+                    toggleLoading(buttonToToggle, buttonText, buttonSpinner, false);
+                }
+            }
+            
+            // Click event for "Reformat with AI" button
+            if (reformatBtn) {
+                reformatBtn.addEventListener('click', () => getReformulations(false));
+            }
+            
+            // Click event for "Regenerate Options" button
+            if (regenerateBtn) {
+                regenerateBtn.addEventListener('click', async function() {
+                    await getReformulations(true);
+                });
+            }
+            
+            // Click events for option cards
+            optionCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remove selected class from all cards
+                    optionCards.forEach(c => {
+                        c.classList.remove('selected');
+                    });
+                    
+                    // Add selected class to clicked card
+                    this.classList.add('selected');
+                    
+                    // Update selected option
+                    selectedOption = parseInt(this.getAttribute('data-option'), 10);
+                    
+                    // Enable apply button
+                    applyReformatBtn.disabled = false;
+                });
+            });
+            
+            // Click event for "Apply Selected" button
+            if (applyReformatBtn) {
+                applyReformatBtn.addEventListener('click', async function() {
+                    if (selectedOption === null || !reformulations[selectedOption]) {
+                        return;
+                    }
+                    
+                    const selectedText = reformulations[selectedOption];
+                    
+                    try {
+                        const response = await fetch(`/question/${questionIndex}/apply_reformat`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                text: selectedText
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            // Close modal
+                            reformatModal.hide();
+                            
+                            // Update the question text on the page
+                            const questionBody = document.getElementById('questionBody');
+                            questionBody.textContent = selectedText;
+                            
+                            // Add revert button if it doesn't exist
+                            if (!document.getElementById('revertBtn')) {
+                                const revertLink = document.createElement('a');
+                                revertLink.id = 'revertBtn';
+                                revertLink.className = 'revert-btn';
+                                revertLink.innerHTML = '<small><i class="fas fa-undo"></i> Revert to original text</small>';
+                                questionBody.insertAdjacentElement('afterend', revertLink);
+                                
+                                // Add event listener to the new revert button
+                                revertLink.addEventListener('click', revertToOriginal);
+                            }
+                            
+                            // Add the "Reformatted with AI" tag if it doesn't exist
+                            const tagsContainer = document.querySelector('.card-header .badge.bg-info');
+                            if (!tagsContainer) {
+                                const newTag = document.createElement('span');
+                                newTag.className = 'badge bg-info';
+                                newTag.textContent = 'Reformatted with AI';
+                                
+                                const badgeContainer = document.querySelector('.card-header div:first-child');
+                                badgeContainer.appendChild(newTag);
+                            }
+                            
+                            // Refresh the page to show updated tags
+                            location.reload();
+                        } else {
+                            console.error('Error:', data.error);
+                            alert('Failed to apply reformatting: ' + (data.error || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('An unexpected error occurred. Please try again later.');
+                    }
+                });
+            }
+            
+            // Function to revert to original text
+            async function revertToOriginal() {
+                if (confirm('Are you sure you want to revert to the original text?')) {
+                    try {
+                        const response = await fetch(`/question/${questionIndex}/revert`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            // Refresh the page to show the original text
+                            location.reload();
+                        } else {
+                            console.error('Error:', data.error);
+                            alert('Failed to revert: ' + (data.error || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('An unexpected error occurred. Please try again later.');
+                    }
+                }
+            }
+            
+            // Add event listener to revert button if it exists
+            if (revertBtn) {
+                revertBtn.addEventListener('click', revertToOriginal);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Tags - English Exam Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .navbar {
+            margin-bottom: 2rem;
+        }
+        .tag-card {
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">English Exam Generator</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/questions">View Questions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/question/add">Add Question</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/generate">Generate Exam</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/tags">Manage Tags</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="mb-4">Manage Tags</h1>
+        
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">All Tags</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if tags %}
+                            <div class="row">
+                                {% for tag in tags %}
+                                <div class="col-md-4">
+                                    <div class="card tag-card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ tag }}</h5>
+                                            <p class="card-text">{{ tag_counts[tag] }} questions</p>
+                                            <div class="d-flex justify-content-between">
+                                                <a href="/tag/{{ tag }}" class="btn btn-sm btn-primary">View Questions</a>
+                                                <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#renameModal{{ loop.index }}">
+                                                    Rename
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ loop.index }}">
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Rename Modal -->
+                                <div class="modal fade" id="renameModal{{ loop.index }}" tabindex="-1" aria-labelledby="renameModalLabel{{ loop.index }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="renameModalLabel{{ loop.index }}">Rename Tag</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="/tag/rename" method="post">
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="old_tag" value="{{ tag }}">
+                                                    <div class="mb-3">
+                                                        <label for="new_tag{{ loop.index }}" class="form-label">New Tag Name</label>
+                                                        <input type="text" class="form-control" id="new_tag{{ loop.index }}" name="new_tag" value="{{ tag }}" required>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteModal{{ loop.index }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ loop.index }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteModalLabel{{ loop.index }}">Delete Tag</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete the tag "{{ tag }}"? This will remove the tag from all questions.
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="/tag/delete" method="post">
+                                                    <input type="hidden" name="tag" value="{{ tag }}">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                No tags found. Add tags to questions to see them here.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

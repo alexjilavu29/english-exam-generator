@@ -46,6 +46,7 @@
         .option-card.selected {
             border-color: #0d6efd;
             background-color: rgba(13, 110, 253, 0.1);
+            box-shadow: 0 0 10px rgba(13, 110, 253, 0.3);
         }
         .revert-btn {
             color: #dc3545;
@@ -59,6 +60,17 @@
         .spinner-border {
             width: 1.2rem;
             height: 1.2rem;
+        }
+        #originalTextPreview {
+            margin-bottom: 0;
+            font-style: italic;
+        }
+        .reformulation-text {
+            min-height: 100px;
+        }
+        .modal-body {
+            max-height: 80vh;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -97,6 +109,9 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/questions">Questions</a></li>
+                        {% if filtered %}
+                        <li class="breadcrumb-item"><a href="/questions?{% if filters.topic %}topic={{ filters.topic }}{% endif %}{% if filters.category %}&category={{ filters.category }}{% endif %}{% if filters.year %}&year={{ filters.year }}{% endif %}{% if filters.tag %}&tag={{ filters.tag }}{% endif %}">Filtered Results</a></li>
+                        {% endif %}
                         <li class="breadcrumb-item active">Question Details</li>
                     </ol>
                 </nav>
@@ -111,7 +126,7 @@
                             {% endif %}
                         </div>
                         <div>
-                            <a href="/question/{{ index }}/edit" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="/question/{{ index }}/edit{% if filtered %}?filtered=true{% if filters.topic %}&topic={{ filters.topic }}{% endif %}{% if filters.category %}&category={{ filters.category }}{% endif %}{% if filters.year %}&year={{ filters.year }}{% endif %}{% if filters.tag %}&tag={{ filters.tag }}{% endif %}{% endif %}" class="btn btn-sm btn-warning">Edit</a>
                             <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                                 Delete
                             </button>
@@ -184,11 +199,23 @@
                 <div class="modal-body">
                     <div id="reformatError" class="alert alert-danger d-none"></div>
                     
+                    <!-- Original Text Preview -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Original Text:</h6>
+                        <div class="card">
+                            <div class="card-body bg-light">
+                                <p class="card-text" id="originalTextPreview">{{ question.body }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6 class="fw-bold mb-3">AI Reformulations:</h6>
                     <div id="reformatOptions" class="row">
                         <div class="col-md-4 mb-3">
                             <div class="card option-card" data-option="0">
                                 <div class="card-body">
                                     <h6 class="card-subtitle mb-2 text-muted">Option 1</h6>
+                                    <div class="badge bg-info mb-2">Reformulation 1</div>
                                     <p class="card-text reformulation-text"></p>
                                 </div>
                             </div>
@@ -197,6 +224,7 @@
                             <div class="card option-card" data-option="1">
                                 <div class="card-body">
                                     <h6 class="card-subtitle mb-2 text-muted">Option 2</h6>
+                                    <div class="badge bg-info mb-2">Reformulation 2</div>
                                     <p class="card-text reformulation-text"></p>
                                 </div>
                             </div>
@@ -205,6 +233,7 @@
                             <div class="card option-card" data-option="2">
                                 <div class="card-body">
                                     <h6 class="card-subtitle mb-2 text-muted">Option 3</h6>
+                                    <div class="badge bg-info mb-2">Reformulation 3</div>
                                     <p class="card-text reformulation-text"></p>
                                 </div>
                             </div>

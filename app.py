@@ -74,7 +74,7 @@ def index():
 
 @app.route('/questions')
 def view_questions():
-    questions = load_questions()
+    all_questions = load_questions()
     metadata = get_metadata()
     
     # Filter questions if parameters are provided
@@ -83,17 +83,26 @@ def view_questions():
     year_filter = request.args.get('year')
     tag_filter = request.args.get('tag')
     
+    # Start with all questions
+    filtered_questions = all_questions.copy()
+    
     if topic_filter:
-        questions = [q for q in questions if q['topic'] == topic_filter]
+        filtered_questions = [q for q in filtered_questions if q['topic'] == topic_filter]
     if category_filter:
-        questions = [q for q in questions if q['category'] == category_filter]
+        filtered_questions = [q for q in filtered_questions if q['category'] == category_filter]
     if year_filter and year_filter.isdigit():
-        questions = [q for q in questions if q['year'] == int(year_filter)]
+        filtered_questions = [q for q in filtered_questions if q['year'] == int(year_filter)]
     if tag_filter:
-        questions = [q for q in questions if 'tags' in q and tag_filter in q['tags']]
+        filtered_questions = [q for q in filtered_questions if 'tags' in q and tag_filter in q['tags']]
+    
+    # Create a list of (question, original_index) tuples
+    indexed_questions = []
+    for i, q in enumerate(all_questions):
+        if q in filtered_questions:
+            indexed_questions.append((q, i))
     
     return render_template('questions.html', 
-                          questions=questions, 
+                          indexed_questions=indexed_questions,
                           metadata=metadata,
                           topic_filter=topic_filter,
                           category_filter=category_filter,
@@ -104,13 +113,48 @@ def view_questions():
 def view_question(index):
     questions = load_questions()
     if 0 <= index < len(questions):
-        return render_template('question_detail.html', question=questions[index], index=index)
+        # Check if we came from a filtered view
+        filtered_query = request.args.get('filtered', 'false') == 'true'
+        filters = {}
+        
+        # If we came from a filtered view, also pass the filters back so we can return to the filtered list
+        if filtered_query:
+            filters = {
+                'topic': request.args.get('topic', ''),
+                'category': request.args.get('category', ''),
+                'year': request.args.get('year', ''),
+                'tag': request.args.get('tag', '')
+            }
+        
+        return render_template('question_detail.html', 
+                              question=questions[index], 
+                              index=index,
+                              filters=filters,
+                              filtered=filtered_query)
     return redirect(url_for('view_questions'))
 
 @app.route('/question/<int:index>/edit', methods=['GET', 'POST'])
 def edit_question(index):
     questions = load_questions()
     metadata = get_metadata()
+    
+    # Get filter parameters
+    filtered_query = request.args.get('filtered', 'false') == 'true'
+    filter_params = {}
+    if filtered_query:
+        filter_params = {
+            'topic': request.args.get('topic', ''),
+            'category': request.args.get('category', ''),
+            'year': request.args.get('year', ''),
+            'tag': request.args.get('tag', '')
+        }
+        filter_query_string = '&'.join([f"{k}={v}" for k, v in filter_params.items() if v])
+        if filter_query_string:
+            filter_query_string = f"filtered=true&{filter_query_string}"
+        else:
+            filter_query_string = "filtered=true"
+    else:
+        filter_query_string = ""
     
     if request.method == 'POST':
         if 0 <= index < len(questions):
@@ -136,10 +180,20 @@ def edit_question(index):
                     del questions[index]['tags']
             
             save_questions(questions)
-            return redirect(url_for('view_question', index=index))
+            
+            # Redirect back with filter parameters if needed
+            if filtered_query:
+                return redirect(f"{url_for('view_question', index=index)}?{filter_query_string}")
+            else:
+                return redirect(url_for('view_question', index=index))
     
     if 0 <= index < len(questions):
-        return render_template('edit_question.html', question=questions[index], index=index, metadata=metadata)
+        return render_template('edit_question.html', 
+                             question=questions[index], 
+                             index=index, 
+                             metadata=metadata,
+                             filtered=filtered_query,
+                             filters=filter_params)
     return redirect(url_for('view_questions'))
 
 @app.route('/question/add', methods=['GET', 'POST'])
@@ -532,6 +586,12 @@ def revert_question(index):
             return jsonify({'success': True})
     
     return jsonify({'error': 'Question not found or no original text stored'}), 404
+
+# Route for downloading questions.json file
+@app.route('/download_questions')
+def download_questions():
+    questions_path = os.path.join(current_dir, 'questions.json')
+    return send_file(questions_path, as_attachment=True, download_name="questions.json")
 
 if __name__ == '__main__':
     # Set up argument parser

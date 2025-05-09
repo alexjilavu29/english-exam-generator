@@ -113,3 +113,57 @@ The English Exam Generator is a comprehensive system for managing and generating
 ## Support
 
 For additional help or to report issues, please contact the system administrator.
+
+## Quick Start
+
+To run the application without using the terminal:
+
+- **Windows**: Double-click the `launch_app.bat` file
+- **macOS**: Double-click the `launch_app.command` file
+  - If you get a security warning, go to System Preferences > Security & Privacy and click "Open Anyway"
+
+The launcher will:
+1. Create a Python virtual environment if needed
+2. Install required dependencies
+3. Set up the .env file for API keys if needed
+4. Start the application
+
+## Project Description
+
+An application for managing and generating English exam questions with an AI-powered reformatting feature.
+
+## AI Reformatting Feature
+
+The application includes an AI-powered feature to reformat existing questions:
+
+1. Configure your OpenAI API key in the AI Settings
+2. View any question and click the "Reformat with AI" button
+3. Choose from three AI-generated reformulations
+4. Apply the selected reformulation or regenerate options
+
+## Technical Details
+
+- Built with Flask
+- Uses OpenAI API for AI features
+- Python-docx for Word document generation
+- Environment variables stored in .env file
+
+## Installation from Source
+
+If you prefer manual installation:
+
+```
+git clone <repository-url>
+cd english-exam-generator
+pip install -r requirements.txt
+python app.py
+```
+
+## Configuration
+
+Configure the OpenAI API key in the AI Settings page or directly in the .env file:
+
+```
+OPENAI_API_KEY=your-api-key-here
+OPENAI_MODEL=gpt-4o
+```

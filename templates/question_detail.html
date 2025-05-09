@@ -127,6 +127,11 @@
                         {% if 'tags' in question and 'Reformatted with AI' in question.tags %}
                         <div>
                             <a id="revertBtn" class="revert-btn"><small><i class="fas fa-undo"></i> Revert to original text</small></a>
+                            {% if 'old_text' in question %}
+                            <div class="mt-2 p-2 bg-light rounded">
+                                <small class="text-muted">Original text: {{ question.old_text }}</small>
+                            </div>
+                            {% endif %}
                         </div>
                         {% endif %}
                         

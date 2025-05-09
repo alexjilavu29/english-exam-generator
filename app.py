@@ -6,6 +6,11 @@ from docx import Document
 import random
 from word_formatter import create_word_document
 from ai_formatter import AIFormatter
+from dotenv import load_dotenv, set_key
+
+# Load environment variables from .env file
+env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+load_dotenv(env_path)
 
 # Get the absolute path of the current directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -15,8 +20,10 @@ template_dir = os.path.join(current_dir, 'templates')
 app = Flask(__name__, template_folder=template_dir)
 app.secret_key = os.urandom(24)  # For session management
 
-# Initialize AI formatter without API key
-ai_formatter = AIFormatter()
+# Initialize AI formatter with API key from .env
+openai_api_key = os.environ.get('OPENAI_API_KEY', '')
+openai_model = os.environ.get('OPENAI_MODEL', 'gpt-4o')
+ai_formatter = AIFormatter(api_key=openai_api_key, model=openai_model)
 
 # For storing original texts when reformatting
 original_texts = {}
@@ -350,9 +357,15 @@ def ai_settings():
         api_key = request.form.get('api_key', '').strip()
         model = request.form.get('model', 'gpt-4o').strip()
         
-        # Save settings to session
+        # Save settings to session and .env file
         session['openai_api_key'] = api_key
         session['openai_model'] = model
+        
+        # Save to .env file
+        if api_key:
+            set_key(env_path, 'OPENAI_API_KEY', api_key)
+        if model:
+            set_key(env_path, 'OPENAI_MODEL', model)
         
         # Update AIFormatter
         ai_formatter.set_api_key(api_key)
@@ -361,10 +374,18 @@ def ai_settings():
         return redirect(url_for('index'))
     
     # Get current settings
-    api_key = session.get('openai_api_key', '')
-    model = session.get('openai_model', 'gpt-4o')
+    api_key = os.environ.get('OPENAI_API_KEY', '') or session.get('openai_api_key', '')
+    model = os.environ.get('OPENAI_MODEL', 'gpt-4o') or session.get('openai_model', 'gpt-4o')
     
-    return render_template('ai_settings.html', api_key=api_key, model=model)
+    # Create a preview of the API key
+    api_key_preview = "Not set"
+    if api_key:
+        if len(api_key) > 8:
+            api_key_preview = f"{api_key[:4]}...{api_key[-4:]}"
+        else:
+            api_key_preview = "Set but too short"
+    
+    return render_template('ai_settings.html', api_key=api_key, api_key_preview=api_key_preview, model=model)
 
 # Route for AI reformatting
 @app.route('/question/<int:index>/reformat', methods=['POST'])
@@ -380,12 +401,17 @@ def reformat_question(index):
         
         # Store original text for potential reversion (only if first request)
         if index not in original_texts:
-            original_texts[index] = question['body']
+            # If question already has an old_text field, use that as the original
+            if 'old_text' in question:
+                original_texts[index] = question['old_text']
+            else:
+                # Otherwise use the current body
+                original_texts[index] = question['body']
         
         try:
-            # Get API key from session
-            api_key = session.get('openai_api_key', '')
-            model = session.get('openai_model', 'gpt-4o')
+            # Get API key from .env first, then session as fallback
+            api_key = os.environ.get('OPENAI_API_KEY', '') or session.get('openai_api_key', '')
+            model = os.environ.get('OPENAI_MODEL', 'gpt-4o') or session.get('openai_model', 'gpt-4o')
             
             if not api_key:
                 return jsonify({'error': 'OpenAI API key is not set. Please configure it in AI Settings.'}), 400
@@ -427,9 +453,17 @@ def apply_reformat(index):
         new_text = request.json.get('text', '')
         
         if new_text:
-            # Store original text if not already stored
-            if index not in original_texts:
-                original_texts[index] = question['body']
+            # Store original text in the question object if this is the first reformatting
+            if 'old_text' not in question:
+                # If we already have the original in memory, use that
+                if index in original_texts:
+                    question['old_text'] = original_texts[index]
+                # Otherwise use the current body text
+                else:
+                    question['old_text'] = question['body']
+            
+            # Also store it in memory for the current session
+            original_texts[index] = question.get('old_text', question['body'])
             
             # Update question body
             question['body'] = new_text
@@ -452,25 +486,49 @@ def apply_reformat(index):
 def revert_question(index):
     questions = load_questions()
     
-    if 0 <= index < len(questions) and index in original_texts:
+    if 0 <= index < len(questions):
         question = questions[index]
         
-        # Restore original text
-        question['body'] = original_texts[index]
-        
-        # Remove reformatting tag if it exists
-        if 'tags' in question and 'Reformatted with AI' in question['tags']:
-            question['tags'].remove('Reformatted with AI')
-            # Remove tags field if empty
-            if not question['tags']:
-                del question['tags']
-        
-        save_questions(questions)
-        
-        # Remove from original_texts dictionary
-        del original_texts[index]
-        
-        return jsonify({'success': True})
+        # Check if we have the original text stored in the question
+        if 'old_text' in question:
+            # Restore original text
+            question['body'] = question['old_text']
+            
+            # Remove the old_text field
+            del question['old_text']
+            
+            # Remove reformatting tag if it exists
+            if 'tags' in question and 'Reformatted with AI' in question['tags']:
+                question['tags'].remove('Reformatted with AI')
+                # Remove tags field if empty
+                if not question['tags']:
+                    del question['tags']
+            
+            save_questions(questions)
+            
+            # Remove from original_texts dictionary if present
+            if index in original_texts:
+                del original_texts[index]
+            
+            return jsonify({'success': True})
+        # Fallback to the in-memory storage if old_text is not in the question
+        elif index in original_texts:
+            # Restore original text
+            question['body'] = original_texts[index]
+            
+            # Remove reformatting tag if it exists
+            if 'tags' in question and 'Reformatted with AI' in question['tags']:
+                question['tags'].remove('Reformatted with AI')
+                # Remove tags field if empty
+                if not question['tags']:
+                    del question['tags']
+            
+            save_questions(questions)
+            
+            # Remove from original_texts dictionary
+            del original_texts[index]
+            
+            return jsonify({'success': True})
     
     return jsonify({'error': 'Question not found or no original text stored'}), 404
 

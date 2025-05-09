@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, s
 import json
 import os
 import sys
+import argparse
 from docx import Document
 import random
 from word_formatter import create_word_document
@@ -533,6 +534,12 @@ def revert_question(index):
     return jsonify({'error': 'Question not found or no original text stored'}), 404
 
 if __name__ == '__main__':
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description='English Exam Generator')
+    parser.add_argument('--port', type=int, default=5001,
+                        help='Port number to run the server on (default: 5001)')
+    args = parser.parse_args()
+    
     # Create templates directory if it doesn't exist
     os.makedirs(template_dir, exist_ok=True)
     
@@ -541,4 +548,5 @@ if __name__ == '__main__':
     os.makedirs(output_dir, exist_ok=True)
     
     print(f"Starting application with template directory: {template_dir}")
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    print(f"Server running on port: {args.port}")
+    app.run(host='0.0.0.0', port=args.port, debug=True)

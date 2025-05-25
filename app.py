@@ -232,11 +232,28 @@ def add_question():
 def delete_question(index):
     questions = load_questions()
     
+    # Get filter parameters for redirect
+    filtered_query = request.args.get('filtered', 'false') == 'true'
+    if filtered_query:
+        filter_params = {
+            'topic': request.args.get('topic', ''),
+            'category': request.args.get('category', ''),
+            'year': request.args.get('year', ''),
+            'tag': request.args.get('tag', '')
+        }
+        filter_query_string = '&'.join([f"{k}={v}" for k, v in filter_params.items() if v])
+        if filter_query_string:
+            filter_query_string = f"?{filter_query_string}"
+        else:
+            filter_query_string = ""
+    else:
+        filter_query_string = ""
+    
     if 0 <= index < len(questions):
         del questions[index]
         save_questions(questions)
     
-    return redirect(url_for('view_questions'))
+    return redirect(f"{url_for('view_questions')}{filter_query_string}")
 
 @app.route('/tags')
 def manage_tags():

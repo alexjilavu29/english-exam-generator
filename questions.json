@@ -56148,7 +56148,7 @@
     "year": 2018
   },
   {
-    "body": "\u2026\u2026\u2026\u2026\u2026\u2026\u2026 the map yesterday, we\u2019d have found the place more easily.",
+    "body": "....... the map yesterday, it would have been easier to locate the place.",
     "answers": [
       "But for bringing",
       "Had we brought",
@@ -56158,7 +56158,12 @@
     "correct_answer": 1,
     "topic": "Grammar",
     "category": "CPE",
-    "year": 2017
+    "year": 2017,
+    "old_text": "\u2026\u2026\u2026\u2026\u2026\u2026\u2026 the map yesterday, we\u2019d have found the place more easily.",
+    "tags": [
+      "Reformatted with AI",
+      "travel"
+    ]
   },
   {
     "body": "It seems \u2026\u2026\u2026\u2026\u2026\u2026\u2026 today not to provide children with a decent education.",
@@ -56171,7 +56176,10 @@
     "correct_answer": 1,
     "topic": "Vocabulary",
     "category": "CPE",
-    "year": 2017
+    "year": 2017,
+    "tags": [
+      "education"
+    ]
   },
   {
     "body": "They were waiting for the manager. The discussion could not \u2026\u2026\u2026\u2026\u2026\u2026\u2026 until he returned.",

@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tag Centralizer - English Exam Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            margin-bottom: 2rem;
+        }
+        .section-card {
+            margin-bottom: 2rem;
+        }
+        .tag-item {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background-color: #f8f9fa;
+        }
+        .chapter-item {
+            border: 1px solid #0d6efd;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background-color: #f0f8ff;
+        }
+        .tag-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            margin: 0.125rem;
+            background-color: #6c757d;
+            color: white;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+        }
+        .search-box {
+            margin-bottom: 1rem;
+        }
+        .action-buttons {
+            margin-top: 0.5rem;
+        }
+        .source-tag-item {
+            padding: 0.4rem 0.5rem;
+            margin: 0.1rem 0;
+            border-radius: 0.25rem;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .source-tag-item:hover {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+        .source-tag-item.selected {
+            background-color: #d1ecf1 !important;
+            border-color: #bee5eb !important;
+            box-shadow: 0 0 0 0.1rem rgba(23, 162, 184, 0.25);
+        }
+        .source-tag-item.selected label {
+            font-weight: 500;
+            color: #0c5460;
+        }
+        .source-tag-item.selected .form-check-input:checked {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+        }
+        #sourceTagsContainer {
+            transition: all 0.2s ease;
+        }
+        .form-check-label {
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        .form-check-input {
+            display: none; /* Hide the actual checkbox */
+        }
+        .form-check-input:checked {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+        }
+        .form-check-input:focus {
+            border-color: #17a2b8;
+            box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+        }
+    </style>
+</head>
+<body>
+    {% set active_page = 'tag_centralizer' %}
+    {% include '_navbar.html' %}
+
+    <div class="container">
+        <h1 class="mb-4">Tag Centralizer</h1>
+        <p class="lead">Manage your tags and organize them into chapters for easier exam generation.</p>
+        
+        <!-- Success/Error Messages -->
+        {% if session.merge_success %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session.merge_success }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% set _ = session.pop('merge_success') %}
+        {% endif %}
+        
+        {% if session.merge_error %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session.merge_error }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% set _ = session.pop('merge_error') %}
+        {% endif %}
+
+        <div class="row">
+            <!-- Chapter Management -->
+            <div class="col-md-6">
+                <div class="card section-card">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Chapters</h5>
+                        <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#createChapterModal">
+                            Create Chapter
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        {% if tag_data.chapters %}
+                            {% for chapter_id, chapter in tag_data.chapters.items() %}
+                            <div class="chapter-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ chapter.name }}</h6>
+                                        {% if chapter.description %}
+                                        <p class="mb-2 text-muted small">{{ chapter.description }}</p>
+                                        {% endif %}
+                                        <div class="mb-2">
+                                            {% for tag in chapter.tags %}
+                                            <span class="tag-badge">{{ tag }}</span>
+                                            {% endfor %}
+                                            {% if not chapter.tags %}
+                                            <span class="text-muted small">No tags assigned</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            Actions
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editChapterModal{{ loop.index }}">Edit</button></li>
+                                            <li><button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteChapterModal{{ loop.index }}">Delete</button></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Edit Chapter Modal -->
+                            <div class="modal fade" id="editChapterModal{{ loop.index }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Chapter</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form action="/chapter/{{ chapter.id }}/edit" method="post">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="chapterName{{ loop.index }}" class="form-label">Chapter Name</label>
+                                                    <input type="text" class="form-control" id="chapterName{{ loop.index }}" name="name" value="{{ chapter.name }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="chapterDescription{{ loop.index }}" class="form-label">Description</label>
+                                                    <textarea class="form-control" id="chapterDescription{{ loop.index }}" name="description" rows="3">{{ chapter.description }}</textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Currently Assigned Tags</label>
+                                                    <div class="border rounded p-2 mb-3 current-tags-container" style="min-height: 80px;">
+                                                        {% if chapter.tags %}
+                                                            {% for tag in chapter.tags %}
+                                                            <span class="badge bg-primary me-2 mb-2" data-tag="{{ tag }}">
+                                                                {{ tag }}
+                                                                <button type="button" class="btn-close btn-close-white ms-1 remove-tag-btn" style="font-size: 0.6em;" data-tag-name="{{ tag }}"></button>
+                                                            </span>
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            <span class="text-muted">No tags assigned yet</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Add Tags</label>
+                                                    <div class="mb-2">
+                                                        <input type="text" class="form-control form-control-sm add-tag-search" placeholder="Search available tags..." autocomplete="off">
+                                                    </div>
+                                                    <div class="border rounded p-2 bg-light available-tags-container" style="max-height: 200px; overflow-y: auto;">
+                                                        {% for tag_name in tag_data.tags.keys() %}
+                                                        <div class="d-flex justify-content-between align-items-center py-1 px-2 border-bottom available-tag-item" data-tag-name="{{ tag_name.lower() }}">
+                                                            <span>
+                                                                <span class="fw-normal">{{ tag_name }}</span>
+                                                                <small class="text-muted">({{ tag_counts.get(tag_name, 0) }} questions)</small>
+                                                            </span>
+                                                            <button type="button" class="btn btn-sm btn-outline-primary add-tag-btn" data-tag-name="{{ tag_name }}">Add</button>
+                                                        </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Hidden inputs for form submission -->
+                                                <div class="hidden-tag-inputs">
+                                                    {% for tag in chapter.tags %}
+                                                    <input type="hidden" name="tags" value="{{ tag }}" data-tag="{{ tag }}">
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Delete Chapter Modal -->
+                            <div class="modal fade" id="deleteChapterModal{{ loop.index }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Delete Chapter</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to delete the chapter "{{ chapter.name }}"? This will not affect the tags or questions.
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="/chapter/{{ chapter.id }}/delete" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-danger">Delete Chapter</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-info">
+                                No chapters created yet. Create your first chapter to organize tags into logical groups.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tag Management -->
+            <div class="col-md-6">
+                <div class="card section-card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Advanced Tag Management</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Merge Tags -->
+                        <div class="mb-4">
+                            <h6>Merge Tags</h6>
+                            <div class="alert alert-warning small mb-2">
+                                <strong>Warning:</strong> This operation will merge all selected source tags into the destination tag. This cannot be undone. For large datasets, this may take a few moments.
+                            </div>
+                            <form action="/tag/merge" method="post" id="mergeForm">
+                                <div class="mb-2">
+                                    <label class="form-label small">Source Tags (to be merged)</label>
+                                    <div class="mb-2">
+                                        <input type="text" class="form-control form-control-sm" id="sourceTagsSearch" placeholder="Search source tags..." autocomplete="off">
+                                    </div>
+                                    <div class="border rounded p-2 bg-light" style="max-height: 200px; overflow-y: auto;" id="sourceTagsContainer">
+                                        {% for tag_name in tag_data.tags.keys() %}
+                                        <div class="form-check source-tag-item" data-tag-name="{{ tag_name.lower() }}">
+                                            <input class="form-check-input" type="checkbox" name="source_tags" value="{{ tag_name }}" id="sourceTag_{{ loop.index0 }}">
+                                            <label class="form-check-label" for="sourceTag_{{ loop.index0 }}">
+                                                <span class="fw-normal">{{ tag_name }}</span>
+                                                <small class="text-muted">({{ tag_counts.get(tag_name, 0) }} questions)</small>
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    <small class="form-text text-muted d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <span id="selectedSourceCount">0</span> source tag(s) selected
+                                        </span>
+                                        <span>
+                                            <button type="button" class="btn btn-link btn-sm p-0 me-2" id="selectAllVisible">Select All Visible</button>
+                                            <button type="button" class="btn btn-link btn-sm p-0" id="clearSourceSelection">Clear All</button>
+                                        </span>
+                                    </small>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small">Destination Tag</label>
+                                    <select class="form-select" name="destination_tag" id="destinationTag" required>
+                                        <option value="">Select destination tag</option>
+                                        {% for tag_name in tag_data.tags.keys() %}
+                                        <option value="{{ tag_name }}">{{ tag_name }} ({{ tag_counts.get(tag_name, 0) }} questions)</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-warning btn-sm" id="mergeButton">
+                                    <span id="mergeButtonText">Merge Tags</span>
+                                    <span id="mergeSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Orphaned Tags -->
+                        {% if orphaned_tags %}
+                        <div class="mb-4">
+                            <h6>Orphaned Tags</h6>
+                            <p class="small text-muted">These tags exist in questions but not in the centralized system:</p>
+                            <form action="/tag/add-orphaned" method="post">
+                                {% for tag in orphaned_tags %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="orphaned_tags" value="{{ tag }}" id="orphaned{{ loop.index }}" checked>
+                                    <label class="form-check-label" for="orphaned{{ loop.index }}">
+                                        {{ tag }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                                <button type="submit" class="btn btn-secondary btn-sm mt-2">Add Selected Tags</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- All Tags List -->
+                <div class="card section-card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">All Tags ({{ tag_data.tags|length }})</h5>
+                    </div>
+                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                        <!-- Search Tags -->
+                        <div class="search-box">
+                            <input type="text" id="tagSearch" class="form-control" placeholder="Search tags...">
+                        </div>
+                        <div id="tagList">
+                            {% for tag_name, tag_info in tag_data.tags.items() %}
+                            <div class="tag-item searchable-tag" data-tag-name="{{ tag_name.lower() }}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ tag_name }}</h6>
+                                        <small class="text-muted">{{ tag_counts.get(tag_name, 0) }} questions</small>
+                                        {% if tag_info.description %}
+                                        <p class="mb-0 small">{{ tag_info.description }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editTagModal{{ loop.index }}">Edit</button>
+                                        <a href="/tag/{{ tag_name }}" class="btn btn-sm btn-outline-info">View</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Edit Tag Modal -->
+                            <div class="modal fade" id="editTagModal{{ loop.index }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Tag: {{ tag_name }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form action="/tag/{{ tag_name }}/update" method="post">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="tagDescription{{ loop.index }}" class="form-label">Description</label>
+                                                    <textarea class="form-control" id="tagDescription{{ loop.index }}" name="description" rows="3">{{ tag_info.description }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Chapter Modal -->
+    <div class="modal fade" id="createChapterModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Chapter</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/chapter/create" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="newChapterName" class="form-label">Chapter Name</label>
+                            <input type="text" class="form-control" id="newChapterName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newChapterDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="newChapterDescription" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Currently Assigned Tags</label>
+                            <div class="border rounded p-2 mb-3 current-tags-container" style="min-height: 80px;">
+                                <span class="text-muted">No tags assigned yet</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Add Tags</label>
+                            <div class="mb-2">
+                                <input type="text" class="form-control form-control-sm add-tag-search" placeholder="Search available tags..." autocomplete="off">
+                            </div>
+                            <div class="border rounded p-2 bg-light available-tags-container" style="max-height: 200px; overflow-y: auto;">
+                                {% for tag_name in tag_data.tags.keys() %}
+                                <div class="d-flex justify-content-between align-items-center py-1 px-2 border-bottom available-tag-item" data-tag-name="{{ tag_name.lower() }}">
+                                    <span>
+                                        <span class="fw-normal">{{ tag_name }}</span>
+                                        <small class="text-muted">({{ tag_counts.get(tag_name, 0) }} questions)</small>
+                                    </span>
+                                    <button type="button" class="btn btn-sm btn-outline-primary add-tag-btn" data-tag-name="{{ tag_name }}">Add</button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Hidden inputs for form submission -->
+                        <div class="hidden-tag-inputs">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Chapter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Tag search functionality
+        document.getElementById('tagSearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tagItems = document.querySelectorAll('.searchable-tag');
+            
+            tagItems.forEach(function(item) {
+                const tagName = item.getAttribute('data-tag-name');
+                if (tagName.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Source tags search functionality
+        document.getElementById('sourceTagsSearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tagItems = document.querySelectorAll('.source-tag-item');
+            let visibleCount = 0;
+            
+            tagItems.forEach(function(item) {
+                const tagName = item.getAttribute('data-tag-name');
+                const label = item.querySelector('label').textContent.toLowerCase();
+                
+                if (searchTerm === '' || tagName.includes(searchTerm) || label.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Maintain visual selection state after search
+            updateSourceTagCounter();
+        });
+
+        // Source tags selection counter and visual state management
+        function updateSourceTagCounter() {
+            const checkedBoxes = document.querySelectorAll('input[name="source_tags"]:checked');
+            const counter = document.getElementById('selectedSourceCount');
+            counter.textContent = checkedBoxes.length;
+            
+            // Update visual state for all tag items
+            document.querySelectorAll('.source-tag-item').forEach(function(item) {
+                const checkbox = item.querySelector('input[name="source_tags"]');
+                if (checkbox.checked) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        // Add event listeners to all source tag checkboxes
+        document.querySelectorAll('input[name="source_tags"]').forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                updateSourceTagCounter();
+                // Prevent the checkbox from losing focus/state
+                this.blur();
+            });
+        });
+
+        // Clear all source tags selection
+        document.getElementById('clearSourceSelection').addEventListener('click', function() {
+            document.querySelectorAll('input[name="source_tags"]').forEach(function(checkbox) {
+                checkbox.checked = false;
+            });
+            updateSourceTagCounter();
+        });
+
+        // Select all visible tags
+        document.getElementById('selectAllVisible').addEventListener('click', function() {
+            const visibleCheckboxes = document.querySelectorAll('.source-tag-item:not([style*="display: none"]) input[name="source_tags"]');
+            visibleCheckboxes.forEach(function(checkbox) {
+                checkbox.checked = true;
+            });
+            updateSourceTagCounter();
+        });
+
+        // Keyboard shortcuts for source tags search
+        document.getElementById('sourceTagsSearch').addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                this.value = '';
+                this.dispatchEvent(new Event('input'));
+            }
+        });
+
+        // Select all visible tags functionality (Ctrl+A in search box)
+        document.getElementById('sourceTagsSearch').addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+                e.preventDefault();
+                const visibleCheckboxes = document.querySelectorAll('.source-tag-item:not([style*="display: none"]) input[name="source_tags"]');
+                const allChecked = Array.from(visibleCheckboxes).every(cb => cb.checked);
+                
+                visibleCheckboxes.forEach(function(checkbox) {
+                    checkbox.checked = !allChecked;
+                });
+                updateSourceTagCounter();
+            }
+        });
+
+        // Enhanced merge functionality with confirmation and loading states
+        document.getElementById('mergeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const sourceTagCheckboxes = document.querySelectorAll('input[name="source_tags"]:checked');
+            const destinationTag = document.getElementById('destinationTag');
+            const mergeButton = document.getElementById('mergeButton');
+            const mergeButtonText = document.getElementById('mergeButtonText');
+            const mergeSpinner = document.getElementById('mergeSpinner');
+            
+            // Get selected values
+            const selectedSourceTags = Array.from(sourceTagCheckboxes).map(checkbox => checkbox.value);
+            const selectedDestination = destinationTag.value;
+            
+            // Validation
+            if (selectedSourceTags.length === 0) {
+                alert('Please select at least one source tag to merge.');
+                return;
+            }
+            
+            if (!selectedDestination) {
+                alert('Please select a destination tag.');
+                return;
+            }
+            
+            if (selectedSourceTags.includes(selectedDestination)) {
+                alert('The destination tag cannot be one of the source tags.');
+                return;
+            }
+            
+            // Calculate total questions that will be affected
+            const sourceTagsWithCounts = Array.from(sourceTagCheckboxes).map(checkbox => {
+                const label = checkbox.nextElementSibling;
+                return label.textContent.trim();
+            });
+            const destinationWithCount = destinationTag.selectedOptions[0].textContent;
+            
+            // Build confirmation message
+            let confirmMessage = `Are you sure you want to merge the following tags?\n\n`;
+            confirmMessage += `Source tags (will be deleted):\n`;
+            sourceTagsWithCounts.forEach(tag => {
+                confirmMessage += `  • ${tag}\n`;
+            });
+            confirmMessage += `\nDestination tag (will receive all questions):\n`;
+            confirmMessage += `  • ${destinationWithCount}\n\n`;
+            confirmMessage += `This operation cannot be undone and may take some time for large datasets.`;
+            
+            // Show confirmation dialog
+            if (confirm(confirmMessage)) {
+                // Show loading state
+                mergeButton.disabled = true;
+                mergeButtonText.textContent = 'Merging...';
+                mergeSpinner.classList.remove('d-none');
+                
+                // Store selected tags for clearing after successful merge
+                sessionStorage.setItem('pendingMergeSourceTags', JSON.stringify(selectedSourceTags));
+                
+                // Submit the form
+                this.submit();
+            }
+        });
+
+        // Auto-hide alerts and handle post-merge cleanup
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    if (alert.parentNode) {
+                        const bsAlert = new bootstrap.Alert(alert);
+                        bsAlert.close();
+                    }
+                }, 10000);
+            });
+            
+            // Check if we just completed a successful merge and clear selections
+            const successAlert = document.querySelector('.alert-success');
+            const pendingMergeTags = sessionStorage.getItem('pendingMergeSourceTags');
+            
+            if (successAlert && pendingMergeTags) {
+                // Clear the source tag selections
+                document.querySelectorAll('input[name="source_tags"]').forEach(function(checkbox) {
+                    checkbox.checked = false;
+                });
+                
+                // Clear the destination tag selection
+                document.getElementById('destinationTag').value = '';
+                
+                // Clear the search box
+                document.getElementById('sourceTagsSearch').value = '';
+                
+                // Update counter and visual states
+                updateSourceTagCounter();
+                
+                // Trigger search to show all tags
+                document.getElementById('sourceTagsSearch').dispatchEvent(new Event('input'));
+                
+                // Remove the stored data
+                sessionStorage.removeItem('pendingMergeSourceTags');
+            }
+            
+            // Initialize visual states on page load
+            updateSourceTagCounter();
+
+            // Initialize chapter tag management
+            initializeChapterTagManagement();
+        });
+
+        function initializeChapterTagManagement() {
+            // Delegated event listener for all chapter modals
+            document.body.addEventListener('click', function(e) {
+                if (e.target.classList.contains('add-tag-btn')) {
+                    addTagToChapter(e.target);
+                } else if (e.target.classList.contains('remove-tag-btn')) {
+                    removeTagFromChapter(e.target);
+                }
+            });
+
+            // Setup search for all chapter modals
+            document.querySelectorAll('.modal').forEach(modal => {
+                const searchInput = modal.querySelector('.add-tag-search');
+                if (searchInput) {
+                    const availableTagsContainer = modal.querySelector('.available-tags-container');
+                    if (availableTagsContainer) {
+                        setupTagSearch(searchInput, availableTagsContainer);
+                    }
+                }
+            });
+        }
+
+        // Chapter tag management functions
+        function addTagToChapter(buttonElement) {
+            const tagName = buttonElement.dataset.tagName;
+            const modal = buttonElement.closest('.modal');
+            if (!modal) return;
+
+            const currentTagsContainer = modal.querySelector('.current-tags-container');
+            const hiddenInputsContainer = modal.querySelector('.hidden-tag-inputs');
+            
+            // Check if tag is already added
+            const existingTag = currentTagsContainer.querySelector(`[data-tag="${tagName}"]`);
+            if (existingTag) {
+                return; // Tag already exists, do nothing
+            }
+            
+            // Remove "No tags assigned yet" message if it exists
+            const noTagsMessage = currentTagsContainer.querySelector('.text-muted');
+            if (noTagsMessage) {
+                noTagsMessage.remove();
+            }
+            
+            // Create new tag badge
+            const tagBadge = document.createElement('span');
+            tagBadge.className = 'badge bg-primary me-2 mb-2';
+            tagBadge.setAttribute('data-tag', tagName);
+            tagBadge.innerHTML = `
+                ${tagName}
+                <button type="button" class="btn-close btn-close-white ms-1 remove-tag-btn" style="font-size: 0.6em;" data-tag-name="${tagName}"></button>
+            `;
+            
+            // Add tag badge to container
+            currentTagsContainer.appendChild(tagBadge);
+            
+            // Add hidden input for form submission
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'tags';
+            hiddenInput.value = tagName;
+            hiddenInput.setAttribute('data-tag', tagName);
+            hiddenInputsContainer.appendChild(hiddenInput);
+        }
+
+        function removeTagFromChapter(buttonElement) {
+            const tagName = buttonElement.dataset.tagName;
+            const modal = buttonElement.closest('.modal');
+            if (!modal) return;
+
+            const currentTagsContainer = modal.querySelector('.current-tags-container');
+            const hiddenInputsContainer = modal.querySelector('.hidden-tag-inputs');
+            
+            // Remove tag badge
+            const tagBadge = currentTagsContainer.querySelector(`[data-tag="${tagName}"]`);
+            if (tagBadge) {
+                tagBadge.remove();
+            }
+            
+            // Remove hidden input
+            const hiddenInput = hiddenInputsContainer.querySelector(`[data-tag="${tagName}"]`);
+            if (hiddenInput) {
+                hiddenInput.remove();
+            }
+            
+            // If no tags left, show "No tags assigned yet" message
+            const remainingTags = currentTagsContainer.querySelectorAll('.badge');
+            if (remainingTags.length === 0) {
+                const noTagsMessage = document.createElement('span');
+                noTagsMessage.className = 'text-muted';
+                noTagsMessage.textContent = 'No tags assigned yet';
+                currentTagsContainer.appendChild(noTagsMessage);
+            }
+        }
+
+        function setupTagSearch(searchInput, availableTagsContainer) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const tagItems = availableTagsContainer.querySelectorAll('.available-tag-item');
+                
+                tagItems.forEach(function(item) {
+                    const tagName = item.getAttribute('data-tag-name');
+                    const tagText = item.textContent.toLowerCase();
+                    
+                    if (searchTerm === '' || tagName.includes(searchTerm) || tagText.includes(searchTerm)) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Keyboard shortcuts
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    this.value = '';
+                    this.dispatchEvent(new Event('input'));
+                }
+            });
+        }
+    </script>
+    
+    <script>
+        // Initialize chapter tag management after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Setup create chapter tag search
+            setupTagSearch('create');
+            
+            // Setup edit chapter tag search for each modal
+            {% if tag_data.chapters %}
+            {% for chapter_id, chapter in tag_data.chapters.items() %}
+            setupTagSearch('edit{{ loop.index }}');
+            {% endfor %}
+            {% endif %}
+        });
+    </script>
+</body>
+</html> 

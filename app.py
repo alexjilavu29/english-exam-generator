@@ -47,6 +47,56 @@ def save_questions(questions):
     with open(questions_path, 'w') as file:
         json.dump(questions, file, indent=2)
 
+# Load tags and chapters from JSON file
+def load_tag_data():
+    tags_path = os.path.join(current_dir, 'tags_and_chapters.json')
+    try:
+        with open(tags_path, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        # Create an empty tags file if it doesn't exist
+        default_data = {"tags": {}, "chapters": {}}
+        with open(tags_path, 'w') as file:
+            json.dump(default_data, file, indent=2)
+        return default_data
+
+# Save tags and chapters to JSON file
+def save_tag_data(tag_data):
+    tags_path = os.path.join(current_dir, 'tags_and_chapters.json')
+    with open(tags_path, 'w') as file:
+        json.dump(tag_data, file, indent=2)
+
+# Synchronize tags between questions.json and tags_and_chapters.json
+def sync_tags_from_questions():
+    """
+    Ensures that all tags found in questions.json exist in tags_and_chapters.json.
+    This is called whenever tags might be out of sync (e.g., after uploading a new questions file).
+    """
+    questions = load_questions()
+    tag_data = load_tag_data()
+    
+    # Extract all unique tags from questions
+    question_tags = set()
+    for question in questions:
+        if 'tags' in question and isinstance(question['tags'], list):
+            for tag in question['tags']:
+                question_tags.add(tag.strip())
+    
+    # Add any missing tags to tag_data
+    added_count = 0
+    for tag in question_tags:
+        if tag not in tag_data['tags']:
+            tag_data['tags'][tag] = {
+                "name": tag,
+                "description": ""
+            }
+            added_count += 1
+    
+    if added_count > 0:
+        save_tag_data(tag_data)
+    
+    return added_count
+
 # Get unique topics, categories, and years from questions
 def get_metadata():
     questions = load_questions()
@@ -54,23 +104,27 @@ def get_metadata():
     categories = sorted(list(set(q['category'] for q in questions)))
     years = sorted(list(set(q['year'] for q in questions)))
     
-    # Get all tags from questions (if they exist)
-    tags = set()
-    for question in questions:
-        if 'tags' in question and question['tags']:
-            for tag in question['tags']:
-                tags.add(tag)
+    # Get all tags from the centralized tag data
+    tag_data = load_tag_data()
+    tags = sorted(list(tag_data['tags'].keys()))
+    
+    # Get all chapters
+    chapters = list(tag_data['chapters'].values())
     
     return {
         'topics': topics,
         'categories': categories,
         'years': years,
-        'tags': sorted(list(tags))
+        'tags': tags,
+        'chapters': chapters
     }
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    metadata = get_metadata()
+    questions = load_questions()
+    metadata['questions_count'] = len(questions)
+    return render_template('index.html', metadata=metadata)
 
 @app.route('/questions')
 def view_questions():
@@ -173,7 +227,22 @@ def edit_question(index):
             # Handle tags
             tags = request.form.get('tags', '').strip()
             if tags:
-                questions[index]['tags'] = [tag.strip() for tag in tags.split(',') if tag.strip()]
+                tag_list = [tag.strip() for tag in tags.split(',') if tag.strip()]
+                questions[index]['tags'] = tag_list
+                
+                # Sync any new tags to the centralized tag data
+                tag_data = load_tag_data()
+                added_new_tags = False
+                for tag in tag_list:
+                    if tag not in tag_data['tags']:
+                        tag_data['tags'][tag] = {
+                            "name": tag,
+                            "description": ""
+                        }
+                        added_new_tags = True
+                
+                if added_new_tags:
+                    save_tag_data(tag_data)
             else:
                 # Remove tags field if empty
                 if 'tags' in questions[index]:
@@ -218,7 +287,22 @@ def add_question():
         # Handle tags
         tags = request.form.get('tags', '').strip()
         if tags:
-            new_question['tags'] = [tag.strip() for tag in tags.split(',') if tag.strip()]
+            tag_list = [tag.strip() for tag in tags.split(',') if tag.strip()]
+            new_question['tags'] = tag_list
+            
+            # Sync any new tags to the centralized tag data
+            tag_data = load_tag_data()
+            added_new_tags = False
+            for tag in tag_list:
+                if tag not in tag_data['tags']:
+                    tag_data['tags'][tag] = {
+                        "name": tag,
+                        "description": ""
+                    }
+                    added_new_tags = True
+            
+            if added_new_tags:
+                save_tag_data(tag_data)
         
         questions = load_questions()
         questions.append(new_question)
@@ -258,16 +342,29 @@ def delete_question(index):
 @app.route('/tags')
 def manage_tags():
     questions = load_questions()
-    metadata = get_metadata()
+    tag_data = load_tag_data()
     
     # Count questions per tag
     tag_counts = {}
-    for tag in metadata['tags']:
-        tag_counts[tag] = sum(1 for q in questions if 'tags' in q and tag in q['tags'])
+    for tag_name in tag_data['tags']:
+        tag_counts[tag_name] = sum(1 for q in questions if 'tags' in q and tag_name in q['tags'])
+        
+    # Separate used and unused tags
+    used_tags = []
+    unused_tags = []
     
-    return render_template('tags.html', tags=metadata['tags'], tag_counts=tag_counts)
+    # Sort tags alphabetically for consistent display
+    sorted_tags = sorted(tag_counts.items())
+    
+    for tag_name, count in sorted_tags:
+        if count > 0:
+            used_tags.append({'name': tag_name, 'count': count})
+        else:
+            unused_tags.append(tag_name)
+    
+    return render_template('tags.html', used_tags=used_tags, unused_tags=unused_tags)
 
-@app.route('/tag/<tag>')
+@app.route('/tag/<path:tag>')
 def view_tag(tag):
     questions = load_questions()
     metadata = get_metadata()
@@ -285,10 +382,28 @@ def rename_tag():
     old_tag = request.form.get('old_tag')
     new_tag = request.form.get('new_tag', '').strip()
     
-    if old_tag and new_tag:
-        questions = load_questions()
+    if old_tag and new_tag and old_tag != new_tag:
+        # Update the centralized tag data
+        tag_data = load_tag_data()
+        if old_tag in tag_data['tags']:
+            # Copy the tag data to the new tag name
+            tag_data['tags'][new_tag] = tag_data['tags'][old_tag].copy()
+            tag_data['tags'][new_tag]['name'] = new_tag
+            
+            # Remove the old tag
+            del tag_data['tags'][old_tag]
+            
+            # Update chapters that reference this tag
+            for chapter in tag_data['chapters'].values():
+                if old_tag in chapter['tags']:
+                    chapter['tags'].remove(old_tag)
+                    if new_tag not in chapter['tags']:
+                        chapter['tags'].append(new_tag)
+            
+            save_tag_data(tag_data)
         
-        # Replace old tag with new tag in all questions
+        # Update all questions with the new tag name
+        questions = load_questions()
         for question in questions:
             if 'tags' in question and old_tag in question['tags']:
                 question['tags'].remove(old_tag)
@@ -304,9 +419,20 @@ def delete_tag():
     tag = request.form.get('tag')
     
     if tag:
-        questions = load_questions()
+        # Remove tag from centralized tag data
+        tag_data = load_tag_data()
+        if tag in tag_data['tags']:
+            del tag_data['tags'][tag]
+            
+            # Remove tag from all chapters
+            for chapter in tag_data['chapters'].values():
+                if tag in chapter['tags']:
+                    chapter['tags'].remove(tag)
+            
+            save_tag_data(tag_data)
         
         # Remove tag from all questions
+        questions = load_questions()
         for question in questions:
             if 'tags' in question and tag in question['tags']:
                 question['tags'].remove(tag)
@@ -329,9 +455,10 @@ def generate_exam():
         selected_topics = request.form.getlist('topics')
         selected_categories = request.form.getlist('categories')
         selected_tags = request.form.getlist('tags')
+        selected_chapters = request.form.getlist('chapters')
         min_year = int(request.form.get('min_year', 0))
         max_year = int(request.form.get('max_year', 9999))
-        num_questions = int(request.form.get('num_questions', 10))
+        num_questions = int(request.form.get('num_questions'))
         
         # Get formatting options
         title = request.form.get('exam_title', 'English Exam')
@@ -360,6 +487,7 @@ def generate_exam():
             selected_topics, 
             selected_categories,
             selected_tags,
+            selected_chapters,
             min_year, 
             max_year, 
             num_questions
@@ -377,15 +505,26 @@ def generate_exam():
     
     return render_template('generate.html', metadata=metadata)
 
-def generate_exam_questions(vocab_percent, selected_topics, selected_categories, selected_tags, min_year, max_year, num_questions):
+def generate_exam_questions(vocab_percent, selected_topics, selected_categories, selected_tags, selected_chapters, min_year, max_year, num_questions):
     questions = load_questions()
+    
+    # Collect all tags from selected chapters
+    chapter_tags = set()
+    if selected_chapters:
+        tag_data = load_tag_data()
+        for chapter_id in selected_chapters:
+            if chapter_id in tag_data['chapters']:
+                chapter_tags.update(tag_data['chapters'][chapter_id]['tags'])
+    
+    # Combine selected tags with chapter tags
+    all_selected_tags = set(selected_tags) | chapter_tags
     
     # Filter questions based on criteria
     filtered_questions = [q for q in questions if 
                          (not selected_topics or q['topic'] in selected_topics) and
                          (not selected_categories or q['category'] in selected_categories) and
                          (min_year <= q['year'] <= max_year) and
-                         (not selected_tags or ('tags' in q and any(tag in q['tags'] for tag in selected_tags)))]
+                         (not all_selected_tags or ('tags' in q and any(tag in q['tags'] for tag in all_selected_tags)))]
     
     # Separate vocabulary and grammar questions
     vocab_questions = [q for q in filtered_questions if q['topic'] == 'Vocabulary']
@@ -422,28 +561,77 @@ def create_word_document(exam_questions, **kwargs):
     from word_formatter import create_word_document as advanced_create_word_document
     return advanced_create_word_document(exam_questions, **kwargs)
 
-# New route for API key settings
-@app.route('/ai_settings', methods=['GET', 'POST'])
-def ai_settings():
+# Settings route for API key settings and file uploads
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
     if request.method == 'POST':
-        api_key = request.form.get('api_key', '').strip()
-        model = request.form.get('model', 'gpt-4o').strip()
+        # Handle AI Settings
+        if 'api_key' in request.form:
+            api_key = request.form.get('api_key', '').strip()
+            model = request.form.get('model', 'gpt-4o').strip()
+            
+            # Save settings to session and .env file
+            session['openai_api_key'] = api_key
+            session['openai_model'] = model
+            
+            # Save to .env file
+            if api_key:
+                set_key(env_path, 'OPENAI_API_KEY', api_key)
+            if model:
+                set_key(env_path, 'OPENAI_MODEL', model)
+            
+            # Update AIFormatter
+            ai_formatter.set_api_key(api_key)
+            ai_formatter.set_model(model)
+            
+            return redirect(url_for('settings'))
         
-        # Save settings to session and .env file
-        session['openai_api_key'] = api_key
-        session['openai_model'] = model
+        # Handle file uploads
+        if 'questions_file' in request.files:
+            file = request.files['questions_file']
+            if file.filename and file.filename.endswith('.json'):
+                try:
+                    # Load and validate the uploaded questions file
+                    uploaded_data = json.load(file)
+                    if isinstance(uploaded_data, list):
+                        # Save the new questions first to ensure sync works on the new data
+                        save_questions(uploaded_data)
+                        
+                        # Synchronize tags from the newly uploaded file
+                        added_tags = sync_tags_from_questions()
+                        
+                        session['upload_message'] = f"Questions file uploaded successfully. {added_tags} new tags synchronized."
+                    else:
+                        session['upload_error'] = "Invalid questions file format. Expected a JSON array."
+                except json.JSONDecodeError:
+                    session['upload_error'] = "Invalid JSON file."
+                except Exception as e:
+                    session['upload_error'] = f"Error uploading file: {str(e)}"
+            else:
+                session['upload_error'] = "Please select a valid JSON file."
+            
+            return redirect(url_for('settings'))
         
-        # Save to .env file
-        if api_key:
-            set_key(env_path, 'OPENAI_API_KEY', api_key)
-        if model:
-            set_key(env_path, 'OPENAI_MODEL', model)
-        
-        # Update AIFormatter
-        ai_formatter.set_api_key(api_key)
-        ai_formatter.set_model(model)
-        
-        return redirect(url_for('index'))
+        if 'tags_file' in request.files:
+            file = request.files['tags_file']
+            if file.filename and file.filename.endswith('.json'):
+                try:
+                    # Load and validate the uploaded tags file
+                    uploaded_data = json.load(file)
+                    if isinstance(uploaded_data, dict) and 'tags' in uploaded_data and 'chapters' in uploaded_data:
+                        # Save the new tag data
+                        save_tag_data(uploaded_data)
+                        session['upload_message'] = "Tags and chapters file uploaded successfully."
+                    else:
+                        session['upload_error'] = "Invalid tags file format. Expected JSON with 'tags' and 'chapters' keys."
+                except json.JSONDecodeError:
+                    session['upload_error'] = "Invalid JSON file."
+                except Exception as e:
+                    session['upload_error'] = f"Error uploading file: {str(e)}"
+            else:
+                session['upload_error'] = "Please select a valid JSON file."
+            
+            return redirect(url_for('settings'))
     
     # Get current settings
     api_key = os.environ.get('OPENAI_API_KEY', '') or session.get('openai_api_key', '')
@@ -457,7 +645,16 @@ def ai_settings():
         else:
             api_key_preview = "Set but too short"
     
-    return render_template('ai_settings.html', api_key=api_key, api_key_preview=api_key_preview, model=model)
+    # Get upload messages
+    upload_message = session.pop('upload_message', None)
+    upload_error = session.pop('upload_error', None)
+    
+    return render_template('settings.html', 
+                         api_key=api_key, 
+                         api_key_preview=api_key_preview, 
+                         model=model,
+                         upload_message=upload_message,
+                         upload_error=upload_error)
 
 # Route for AI reformatting
 @app.route('/question/<int:index>/reformat', methods=['POST'])
@@ -609,6 +806,198 @@ def revert_question(index):
 def download_questions():
     questions_path = os.path.join(current_dir, 'questions.json')
     return send_file(questions_path, as_attachment=True, download_name="questions.json")
+
+# Route for downloading tags_and_chapters.json file
+@app.route('/download_tags')
+def download_tags():
+    tags_path = os.path.join(current_dir, 'tags_and_chapters.json')
+    return send_file(tags_path, as_attachment=True, download_name="tags_and_chapters.json")
+
+# Tag Centralizer page
+@app.route('/tag-centralizer')
+def tag_centralizer():
+    tag_data = load_tag_data()
+    questions = load_questions()
+    
+    # Count questions per tag
+    tag_counts = {}
+    for tag_name in tag_data['tags']:
+        tag_counts[tag_name] = sum(1 for q in questions if 'tags' in q and tag_name in q['tags'])
+    
+    # Find orphaned tags (tags in questions but not in centralized data)
+    question_tags = set()
+    for question in questions:
+        if 'tags' in question and isinstance(question['tags'], list):
+            for tag in question['tags']:
+                question_tags.add(tag.strip())
+    
+    orphaned_tags = question_tags - set(tag_data['tags'].keys())
+    
+    return render_template('tag_centralizer.html', 
+                         tag_data=tag_data,
+                         tag_counts=tag_counts,
+                         orphaned_tags=list(orphaned_tags))
+
+# Chapter management routes
+@app.route('/chapter/create', methods=['POST'])
+def create_chapter():
+    name = request.form.get('name', '').strip()
+    description = request.form.get('description', '').strip()
+    
+    if name:
+        tag_data = load_tag_data()
+        chapter_id = name.lower().replace(' ', '-').replace('&', 'and')
+        
+        # Ensure unique ID
+        counter = 1
+        original_id = chapter_id
+        while chapter_id in tag_data['chapters']:
+            chapter_id = f"{original_id}-{counter}"
+            counter += 1
+        
+        tag_data['chapters'][chapter_id] = {
+            "id": chapter_id,
+            "name": name,
+            "description": description,
+            "tags": []
+        }
+        
+        save_tag_data(tag_data)
+    
+    return redirect(url_for('tag_centralizer'))
+
+@app.route('/chapter/<chapter_id>/edit', methods=['POST'])
+def edit_chapter(chapter_id):
+    tag_data = load_tag_data()
+    
+    if chapter_id in tag_data['chapters']:
+        name = request.form.get('name', '').strip()
+        description = request.form.get('description', '').strip()
+        selected_tags = request.form.getlist('tags')
+        
+        if name:
+            tag_data['chapters'][chapter_id]['name'] = name
+            tag_data['chapters'][chapter_id]['description'] = description
+            tag_data['chapters'][chapter_id]['tags'] = selected_tags
+            
+            save_tag_data(tag_data)
+    
+    return redirect(url_for('tag_centralizer'))
+
+@app.route('/chapter/<chapter_id>/delete', methods=['POST'])
+def delete_chapter(chapter_id):
+    tag_data = load_tag_data()
+    
+    if chapter_id in tag_data['chapters']:
+        del tag_data['chapters'][chapter_id]
+        save_tag_data(tag_data)
+    
+    return redirect(url_for('tag_centralizer'))
+
+# Advanced tag management routes
+@app.route('/tag/merge', methods=['POST'])
+def merge_tags():
+    source_tags = request.form.getlist('source_tags')
+    destination_tag = request.form.get('destination_tag', '').strip()
+    
+    if source_tags and destination_tag:
+        try:
+            tag_data = load_tag_data()
+            questions = load_questions()
+            
+            # Convert source_tags to set for faster lookup
+            source_tags_set = set(source_tags)
+            
+            # Ensure destination tag exists in centralized data
+            if destination_tag not in tag_data['tags']:
+                tag_data['tags'][destination_tag] = {
+                    "name": destination_tag,
+                    "description": ""
+                }
+            
+            # Track progress for large operations
+            questions_modified = 0
+            total_questions = len(questions)
+            
+            # Optimized question processing
+            for i, question in enumerate(questions):
+                if 'tags' in question and question['tags']:
+                    # Check if this question has any source tags
+                    question_tags_set = set(question['tags'])
+                    has_source_tags = bool(source_tags_set & question_tags_set)
+                    
+                    if has_source_tags:
+                        # Remove source tags
+                        question['tags'] = [tag for tag in question['tags'] if tag not in source_tags_set]
+                        
+                        # Add destination tag if not already present
+                        if destination_tag not in question['tags']:
+                            question['tags'].append(destination_tag)
+                        
+                        # Clean up empty tags list
+                        if not question['tags']:
+                            del question['tags']
+                        
+                        questions_modified += 1
+                
+                # Progress feedback for large datasets (every 1000 questions)
+                if (i + 1) % 1000 == 0:
+                    print(f"Processed {i + 1}/{total_questions} questions, modified {questions_modified}")
+            
+            # Update centralized tag data and chapters
+            for source_tag in source_tags:
+                if source_tag in tag_data['tags'] and source_tag != destination_tag:
+                    del tag_data['tags'][source_tag]
+                
+                # Update chapters efficiently
+                for chapter in tag_data['chapters'].values():
+                    if source_tag in chapter['tags']:
+                        chapter['tags'].remove(source_tag)
+                        if destination_tag not in chapter['tags']:
+                            chapter['tags'].append(destination_tag)
+            
+            # Save data efficiently
+            print(f"Merge complete: Modified {questions_modified} questions")
+            save_tag_data(tag_data)
+            save_questions(questions)
+            
+            # Add success message to session
+            session['merge_success'] = f"Successfully merged {len(source_tags)} tag(s) into '{destination_tag}'. Modified {questions_modified} questions."
+            
+        except Exception as e:
+            print(f"Error during tag merge: {str(e)}")
+            session['merge_error'] = f"Error during tag merge: {str(e)}"
+    
+    return redirect(url_for('tag_centralizer'))
+
+@app.route('/tag/add-orphaned', methods=['POST'])
+def add_orphaned_tags():
+    orphaned_tags = request.form.getlist('orphaned_tags')
+    
+    if orphaned_tags:
+        tag_data = load_tag_data()
+        
+        for tag in orphaned_tags:
+            if tag not in tag_data['tags']:
+                tag_data['tags'][tag] = {
+                    "name": tag,
+                    "description": ""
+                }
+        
+        save_tag_data(tag_data)
+    
+    return redirect(url_for('tag_centralizer'))
+
+@app.route('/tag/<tag_name>/update', methods=['POST'])
+def update_tag(tag_name):
+    new_description = request.form.get('description', '').strip()
+    
+    tag_data = load_tag_data()
+    if tag_name in tag_data['tags']:
+        tag_data['tags'][tag_name]['description'] = new_description
+        save_tag_data(tag_data)
+    
+    return redirect(url_for('tag_centralizer'))
 
 if __name__ == '__main__':
     # Set up argument parser

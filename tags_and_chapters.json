@@ -1,0 +1,679 @@
+{
+  "tags": {
+    "Reformatted with AI": {
+      "name": "Reformatted with AI",
+      "description": ""
+    },
+    "accidents": {
+      "name": "accidents",
+      "description": ""
+    },
+    "adjectives": {
+      "name": "adjectives",
+      "description": ""
+    },
+    "adverbial phrases": {
+      "name": "adverbial phrases",
+      "description": ""
+    },
+    "adverbs/adjectives": {
+      "name": "adverbs/adjectives",
+      "description": ""
+    },
+    "advertising": {
+      "name": "advertising",
+      "description": ""
+    },
+    "agreement": {
+      "name": "agreement",
+      "description": ""
+    },
+    "articles": {
+      "name": "articles",
+      "description": ""
+    },
+    "attitude": {
+      "name": "attitude",
+      "description": ""
+    },
+    "attitudes": {
+      "name": "attitudes",
+      "description": ""
+    },
+    "business": {
+      "name": "business",
+      "description": ""
+    },
+    "causatives": {
+      "name": "causatives",
+      "description": ""
+    },
+    "character/personality": {
+      "name": "character/personality",
+      "description": ""
+    },
+    "chores": {
+      "name": "chores",
+      "description": ""
+    },
+    "collocations": {
+      "name": "collocations",
+      "description": ""
+    },
+    "comparative structures": {
+      "name": "comparative structures",
+      "description": ""
+    },
+    "comparatives": {
+      "name": "comparatives",
+      "description": ""
+    },
+    "comparisons": {
+      "name": "comparisons",
+      "description": ""
+    },
+    "concession": {
+      "name": "concession",
+      "description": ""
+    },
+    "conditionals": {
+      "name": "conditionals",
+      "description": ""
+    },
+    "conjunctions": {
+      "name": "conjunctions",
+      "description": ""
+    },
+    "cooking and eating": {
+      "name": "cooking and eating",
+      "description": ""
+    },
+    "correlatives": {
+      "name": "correlatives",
+      "description": ""
+    },
+    "crime": {
+      "name": "crime",
+      "description": ""
+    },
+    "culture/society": {
+      "name": "culture/society",
+      "description": ""
+    },
+    "determiners": {
+      "name": "determiners",
+      "description": ""
+    },
+    "disasters": {
+      "name": "disasters",
+      "description": ""
+    },
+    "economy": {
+      "name": "economy",
+      "description": ""
+    },
+    "economy/business": {
+      "name": "economy/business",
+      "description": ""
+    },
+    "education": {
+      "name": "education",
+      "description": ""
+    },
+    "emphasis": {
+      "name": "emphasis",
+      "description": ""
+    },
+    "entertainment": {
+      "name": "entertainment",
+      "description": ""
+    },
+    "environment": {
+      "name": "environment",
+      "description": ""
+    },
+    "environment/nature": {
+      "name": "environment/nature",
+      "description": ""
+    },
+    "family": {
+      "name": "family",
+      "description": ""
+    },
+    "fashion": {
+      "name": "fashion",
+      "description": ""
+    },
+    "feelings/emotions": {
+      "name": "feelings/emotions",
+      "description": ""
+    },
+    "food and drink": {
+      "name": "food and drink",
+      "description": ""
+    },
+    "geography": {
+      "name": "geography",
+      "description": ""
+    },
+    "gerund and infinitive": {
+      "name": "gerund and infinitive",
+      "description": ""
+    },
+    "gestures": {
+      "name": "gestures",
+      "description": ""
+    },
+    "group noun phrases": {
+      "name": "group noun phrases",
+      "description": ""
+    },
+    "health": {
+      "name": "health",
+      "description": ""
+    },
+    "history": {
+      "name": "history",
+      "description": ""
+    },
+    "homes/architecture": {
+      "name": "homes/architecture",
+      "description": ""
+    },
+    "human body": {
+      "name": "human body",
+      "description": ""
+    },
+    "human interactions": {
+      "name": "human interactions",
+      "description": ""
+    },
+    "human mind": {
+      "name": "human mind",
+      "description": ""
+    },
+    "idiom": {
+      "name": "idiom",
+      "description": ""
+    },
+    "idioms": {
+      "name": "idioms",
+      "description": ""
+    },
+    "image": {
+      "name": "image",
+      "description": ""
+    },
+    "indefinite pronouns": {
+      "name": "indefinite pronouns",
+      "description": ""
+    },
+    "industry": {
+      "name": "industry",
+      "description": ""
+    },
+    "inversion": {
+      "name": "inversion",
+      "description": ""
+    },
+    "issues": {
+      "name": "issues",
+      "description": ""
+    },
+    "language functions": {
+      "name": "language functions",
+      "description": ""
+    },
+    "law": {
+      "name": "law",
+      "description": ""
+    },
+    "linking verbs": {
+      "name": "linking verbs",
+      "description": ""
+    },
+    "materials": {
+      "name": "materials",
+      "description": ""
+    },
+    "modals": {
+      "name": "modals",
+      "description": ""
+    },
+    "money": {
+      "name": "money",
+      "description": ""
+    },
+    "movement": {
+      "name": "movement",
+      "description": ""
+    },
+    "movement/gestures": {
+      "name": "movement/gestures",
+      "description": ""
+    },
+    "music": {
+      "name": "music",
+      "description": ""
+    },
+    "nature": {
+      "name": "nature",
+      "description": ""
+    },
+    "passive voice": {
+      "name": "passive voice",
+      "description": ""
+    },
+    "past habit": {
+      "name": "past habit",
+      "description": ""
+    },
+    "phrasal verb": {
+      "name": "phrasal verb",
+      "description": ""
+    },
+    "phrasal verbs": {
+      "name": "phrasal verbs",
+      "description": ""
+    },
+    "politics": {
+      "name": "politics",
+      "description": ""
+    },
+    "possessives": {
+      "name": "possessives",
+      "description": ""
+    },
+    "prepositional phrases": {
+      "name": "prepositional phrases",
+      "description": ""
+    },
+    "prepositions": {
+      "name": "prepositions",
+      "description": ""
+    },
+    "pronouns": {
+      "name": "pronouns",
+      "description": ""
+    },
+    "quantifiers": {
+      "name": "quantifiers",
+      "description": ""
+    },
+    "reflexive pronouns": {
+      "name": "reflexive pronouns",
+      "description": ""
+    },
+    "relationships": {
+      "name": "relationships",
+      "description": ""
+    },
+    "relative clauses": {
+      "name": "relative clauses",
+      "description": ""
+    },
+    "relative pronouns": {
+      "name": "relative pronouns",
+      "description": ""
+    },
+    "relative pronouns/adverbs": {
+      "name": "relative pronouns/adverbs",
+      "description": ""
+    },
+    "religion": {
+      "name": "religion",
+      "description": ""
+    },
+    "sayings/proverbs": {
+      "name": "sayings/proverbs",
+      "description": ""
+    },
+    "science and technology": {
+      "name": "science and technology",
+      "description": ""
+    },
+    "science/technology": {
+      "name": "science/technology",
+      "description": ""
+    },
+    "senses": {
+      "name": "senses",
+      "description": ""
+    },
+    "shopping": {
+      "name": "shopping",
+      "description": ""
+    },
+    "similes": {
+      "name": "similes",
+      "description": ""
+    },
+    "social issues": {
+      "name": "social issues",
+      "description": ""
+    },
+    "sport": {
+      "name": "sport",
+      "description": ""
+    },
+    "sports": {
+      "name": "sports",
+      "description": ""
+    },
+    "stative verbs": {
+      "name": "stative verbs",
+      "description": ""
+    },
+    "subjunctive": {
+      "name": "subjunctive",
+      "description": ""
+    },
+    "subordinate clauses": {
+      "name": "subordinate clauses",
+      "description": ""
+    },
+    "success": {
+      "name": "success",
+      "description": ""
+    },
+    "tag questions": {
+      "name": "tag questions",
+      "description": ""
+    },
+    "tenses": {
+      "name": "tenses",
+      "description": ""
+    },
+    "the army and the navy": {
+      "name": "the army and the navy",
+      "description": ""
+    },
+    "the media": {
+      "name": "the media",
+      "description": ""
+    },
+    "the weather": {
+      "name": "the weather",
+      "description": ""
+    },
+    "time clauses": {
+      "name": "time clauses",
+      "description": ""
+    },
+    "tourism": {
+      "name": "tourism",
+      "description": ""
+    },
+    "transactions": {
+      "name": "transactions",
+      "description": ""
+    },
+    "transitive/intransitive verbs": {
+      "name": "transitive/intransitive verbs",
+      "description": ""
+    },
+    "transport": {
+      "name": "transport",
+      "description": ""
+    },
+    "transport/traffic": {
+      "name": "transport/traffic",
+      "description": ""
+    },
+    "travel": {
+      "name": "travel",
+      "description": ""
+    },
+    "travel/holidays": {
+      "name": "travel/holidays",
+      "description": ""
+    },
+    "uncountable nouns": {
+      "name": "uncountable nouns",
+      "description": ""
+    },
+    "verified": {
+      "name": "verified",
+      "description": ""
+    },
+    "vocabulary": {
+      "name": "vocabulary",
+      "description": ""
+    },
+    "war": {
+      "name": "war",
+      "description": ""
+    },
+    "war and conflict": {
+      "name": "war and conflict",
+      "description": ""
+    },
+    "work": {
+      "name": "work",
+      "description": ""
+    },
+    "noun phrases": {
+      "name": "noun phrases",
+      "description": ""
+    },
+    "skills/abilities/talent": {
+      "name": "skills/abilities/talent",
+      "description": ""
+    },
+    "stages of life": {
+      "name": "stages of life",
+      "description": ""
+    },
+    "change/development/evolution": {
+      "name": "change/development/evolution",
+      "description": ""
+    },
+    "purpose": {
+      "name": "purpose",
+      "description": ""
+    },
+    "deception": {
+      "name": "deception",
+      "description": ""
+    },
+    "time": {
+      "name": "time",
+      "description": ""
+    },
+    "noises": {
+      "name": "noises",
+      "description": ""
+    },
+    "plural-only nouns": {
+      "name": "plural-only nouns",
+      "description": ""
+    },
+    "attitude/reaction": {
+      "name": "attitude/reaction",
+      "description": ""
+    },
+    "comparisons/comparative structures": {
+      "name": "comparisons/comparative structures",
+      "description": ""
+    },
+    "leisure/hobbies": {
+      "name": "leisure/hobbies",
+      "description": ""
+    },
+    "social status": {
+      "name": "social status",
+      "description": ""
+    },
+    "celebrations/parties": {
+      "name": "celebrations/parties",
+      "description": ""
+    },
+    "cause/effect": {
+      "name": "cause/effect",
+      "description": ""
+    },
+    "physical characteristics": {
+      "name": "physical characteristics",
+      "description": ""
+    },
+    "indirect speech": {
+      "name": "indirect speech",
+      "description": ""
+    },
+    "chance/fate/hazard": {
+      "name": "chance/fate/hazard",
+      "description": ""
+    },
+    "relative pronouns/adverbs/clauses": {
+      "name": "relative pronouns/adverbs/clauses",
+      "description": ""
+    },
+    "nouns": {
+      "name": "nouns",
+      "description": ""
+    },
+    "appearance": {
+      "name": "appearance",
+      "description": ""
+    },
+    "problem-solving": {
+      "name": "problem-solving",
+      "description": ""
+    },
+    "infrastructure": {
+      "name": "infrastructure",
+      "description": ""
+    },
+    "amount/quantity": {
+      "name": "amount/quantity",
+      "description": ""
+    },
+    "perception": {
+      "name": "perception",
+      "description": ""
+    },
+    "environment/conservation/recycling": {
+      "name": "environment/conservation/recycling",
+      "description": ""
+    },
+    "accomodation/homes": {
+      "name": "accomodation/homes",
+      "description": ""
+    },
+    "weather": {
+      "name": "weather",
+      "description": ""
+    },
+    "pollution": {
+      "name": "pollution",
+      "description": ""
+    },
+    "law/the police": {
+      "name": "law/the police",
+      "description": ""
+    },
+    "art": {
+      "name": "art",
+      "description": ""
+    },
+    "determiners/quantifiers": {
+      "name": "determiners/quantifiers",
+      "description": ""
+    },
+    "events/exhibitions": {
+      "name": "events/exhibitions",
+      "description": ""
+    },
+    "architecture/buildings": {
+      "name": "architecture/buildings",
+      "description": ""
+    },
+    "participle": {
+      "name": "participle",
+      "description": ""
+    },
+    "nature/wildlife/animals/pets": {
+      "name": "nature/wildlife/animals/pets",
+      "description": ""
+    },
+    "preferences": {
+      "name": "preferences",
+      "description": ""
+    },
+    "holidays/festivals": {
+      "name": "holidays/festivals",
+      "description": ""
+    },
+    "prediction/speculation/inference/deduction": {
+      "name": "prediction/speculation/inference/deduction",
+      "description": ""
+    },
+    "war and conflict/violence": {
+      "name": "war and conflict/violence",
+      "description": ""
+    },
+    "contrast": {
+      "name": "contrast",
+      "description": ""
+    },
+    "urban/rural area": {
+      "name": "urban/rural area",
+      "description": ""
+    },
+    "medicine/psychology": {
+      "name": "medicine/psychology",
+      "description": ""
+    },
+    "food and drink/diet": {
+      "name": "food and drink/diet",
+      "description": ""
+    },
+    "sports/exercise": {
+      "name": "sports/exercise",
+      "description": ""
+    },
+    "communication": {
+      "name": "communication",
+      "description": ""
+    },
+    "suggestions": {
+      "name": "suggestions",
+      "description": ""
+    },
+    "modal verbs/phrases": {
+      "name": "modal verbs/phrases",
+      "description": ""
+    },
+    "geography/the outdoors/landscape/scenery": {
+      "name": "geography/the outdoors/landscape/scenery",
+      "description": ""
+    },
+    "clothes": {
+      "name": "clothes",
+      "description": ""
+    },
+    "geography/landscape/scenery": {
+      "name": "geography/landscape/scenery",
+      "description": ""
+    }
+  },
+  "chapters": {
+    "arts-and-crafts": {
+      "id": "arts-and-crafts",
+      "name": "Arts & Crafts",
+      "description": "",
+      "tags": [
+        "culture/society",
+        "music",
+        "the media",
+        "tourism"
+      ]
+    },
+    "grammar": {
+      "id": "grammar",
+      "name": "Grammar",
+      "description": "",
+      "tags": []
+    }
+  }
+}

@@ -1,0 +1,151 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm border-bottom">
+    <div class="container-fluid px-4">
+        <!-- Brand -->
+        <a class="navbar-brand fw-bold text-primary d-flex align-items-center" href="/">
+            <span class="brand-icon me-2">📚</span>
+            <span class="brand-text">English Exam Generator</span>
+        </a>
+        
+        <!-- Mobile Toggle -->
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <!-- Navigation Links -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <a class="nav-link px-3 py-2 {% if active_page == 'home' %}active fw-semibold{% endif %}" href="/">
+                        <i class="bi bi-house-door me-1"></i>Dashboard
+                    </a>
+                </li>
+                
+                <!-- Question Management Group -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle px-3 py-2 {% if active_page in ['questions', 'add_question'] %}active fw-semibold{% endif %}" 
+                       href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-collection me-1"></i>Questions
+                    </a>
+                    <ul class="dropdown-menu shadow-sm border-0 mt-2">
+                        <li><a class="dropdown-item py-2 {% if active_page == 'questions' %}active{% endif %}" href="/questions">
+                            <i class="bi bi-search me-2"></i>Browse Questions
+                        </a></li>
+                        <li><a class="dropdown-item py-2 {% if active_page == 'add_question' %}active{% endif %}" href="/question/add">
+                            <i class="bi bi-plus-circle me-2"></i>Add New Question
+                        </a></li>
+                    </ul>
+                </li>
+                
+                <!-- Exam Generation -->
+                <li class="nav-item">
+                    <a class="nav-link px-3 py-2 {% if active_page == 'generate' %}active fw-semibold{% endif %}" href="/generate">
+                        <i class="bi bi-file-earmark-plus me-1"></i>Generate Exam
+                    </a>
+                </li>
+                
+                <!-- Tag Management Group -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle px-3 py-2 {% if active_page in ['tags', 'tag_centralizer'] %}active fw-semibold{% endif %}" 
+                       href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-tags me-1"></i>Tags
+                    </a>
+                    <ul class="dropdown-menu shadow-sm border-0 mt-2">
+                        <li><a class="dropdown-item py-2 {% if active_page == 'tags' %}active{% endif %}" href="/tags">
+                            <i class="bi bi-tag me-2"></i>Manage Tags
+                        </a></li>
+                        <li><a class="dropdown-item py-2 {% if active_page == 'tag_centralizer' %}active{% endif %}" href="/tag-centralizer">
+                            <i class="bi bi-gear me-2"></i>Advanced Tools
+                        </a></li>
+                    </ul>
+                </li>
+                
+                <!-- Settings -->
+                <li class="nav-item">
+                    <a class="nav-link px-3 py-2 {% if active_page == 'settings' %}active fw-semibold{% endif %}" href="/settings">
+                        <i class="bi bi-sliders me-1"></i>Settings
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<style>
+    .navbar {
+        min-height: 70px;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.5rem;
+        letter-spacing: -0.025em;
+    }
+    
+    .brand-icon {
+        font-size: 1.75rem;
+    }
+    
+    .nav-link {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #6c757d !important;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease-in-out;
+        margin: 0 0.25rem;
+    }
+    
+    .nav-link:hover {
+        color: #495057 !important;
+        background-color: #f8f9fa;
+    }
+    
+    .nav-link.active {
+        color: #0d6efd !important;
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+    
+    .dropdown-menu {
+        border-radius: 0.75rem;
+        padding: 0.5rem;
+        min-width: 200px;
+    }
+    
+    .dropdown-item {
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+        color: #495057;
+    }
+    
+    .dropdown-item.active {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+    }
+    
+    .navbar-toggler {
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+    }
+    
+    .navbar-toggler:focus {
+        box-shadow: none;
+        border-color: transparent;
+    }
+    
+    @media (max-width: 991.98px) {
+        .navbar-nav {
+            padding-top: 1rem;
+        }
+        
+        .nav-link {
+            padding: 0.75rem 1rem !important;
+            margin: 0.125rem 0;
+        }
+    }
+</style> 

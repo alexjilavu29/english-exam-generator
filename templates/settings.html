@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - English Exam Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            margin-bottom: 2rem;
+        }
+        .key-preview {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: #f8f9fa;
+            border-radius: 0.25rem;
+            border: 1px solid #dee2e6;
+            font-family: monospace;
+            margin-left: 0.5rem;
+        }
+        .settings-section {
+            margin-bottom: 2rem;
+        }
+        .section-card {
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    {% set active_page = 'settings' %}
+    {% include '_navbar.html' %}
+
+    <div class="container">
+        <h1 class="mb-4">Settings</h1>
+        
+        <!-- Success/Error Messages -->
+        {% if upload_message %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ upload_message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+        
+        {% if upload_error %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ upload_error }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-6">
+                <!-- AI Settings -->
+                <div class="card settings-section">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">AI Reformatting Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            <div class="mb-3">
+                                <label for="api_key" class="form-label">
+                                    OpenAI API Key
+                                    <span class="key-preview">{{ api_key_preview }}</span>
+                                </label>
+                                <input type="password" class="form-control" id="api_key" name="api_key" value="{{ api_key }}" required>
+                                <div class="form-text">Your OpenAI API key is required for the question reformatting feature.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="model" class="form-label">AI Model</label>
+                                <select class="form-select" id="model" name="model">
+                                    <option value="gpt-4o" {% if model == 'gpt-4o' %}selected{% endif %}>GPT-4o</option>
+                                    <option value="o4-mini-2025-04-16" {% if model == 'o4-mini-2025-04-16' %}selected{% endif %}>O4 Mini</option>
+                                    <option value="gpt-4.1-2025-04-14" {% if model == 'gpt-4.1-2025-04-14' %}selected{% endif %}>GPT 4.1</option>
+                                    <option value="o3-2025-04-16" {% if model == 'o3-2025-04-16' %}selected{% endif %}>O3</option>
+                                </select>
+                                <div class="form-text">Select the OpenAI model to use for question reformatting.</div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save AI Settings</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- File Downloads -->
+                <div class="card settings-section">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Download Data Files</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Download your current data files for backup or sharing:</p>
+                        <div class="d-grid gap-2">
+                            <a href="/download_questions" class="btn btn-outline-success">
+                                Download Questions Database (questions.json)
+                            </a>
+                            <a href="/download_tags" class="btn btn-outline-success">
+                                Download Tags & Chapters (tags_and_chapters.json)
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <!-- Upload Questions -->
+                <div class="card settings-section">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">Upload Questions Database</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="questions_file" class="form-label">Upload New Questions File</label>
+                                <input type="file" class="form-control" id="questions_file" name="questions_file" accept=".json" required>
+                                <div class="form-text">Upload a JSON file containing questions. This will replace your current questions database.</div>
+                            </div>
+                            
+                            <div class="alert alert-warning">
+                                <strong>Warning:</strong> This will replace your current questions database. Make sure to download a backup first.
+                            </div>
+                            
+                            <button type="submit" class="btn btn-warning">Upload Questions</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Upload Tags & Chapters -->
+                <div class="card settings-section">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">Upload Tags & Chapters</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="tags_file" class="form-label">Upload Tags & Chapters File</label>
+                                <input type="file" class="form-control" id="tags_file" name="tags_file" accept=".json" required>
+                                <div class="form-text">Upload a JSON file containing tags and chapters. This will replace your current tag configuration.</div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <strong>Note:</strong> This will replace your current tags and chapters configuration. Questions will remain unchanged.
+                            </div>
+                            
+                            <button type="submit" class="btn btn-secondary">Upload Tags & Chapters</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <h6><strong>File Format Information:</strong></h6>
+                    <ul class="mb-0">
+                        <li><strong>Questions File:</strong> Should be a JSON array of question objects with body, answers, correct_answer, topic, category, year, and optional tags fields.</li>
+                        <li><strong>Tags & Chapters File:</strong> Should be a JSON object with "tags" and "chapters" keys. See the downloaded file for the exact format.</li>
+                        <li><strong>Backward Compatibility:</strong> The system automatically synchronizes tags when you upload questions files from previous versions.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

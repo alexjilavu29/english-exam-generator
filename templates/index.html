@@ -3,77 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Exam Generator</title>
+    <title>English Exam Generator - Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
             padding-top: 2rem;
             padding-bottom: 2rem;
+            background-color: #f8f9fa;
         }
         .navbar {
             margin-bottom: 2rem;
         }
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+            border-radius: 1rem;
+            margin-bottom: 3rem;
+        }
+        .feature-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            height: 100%;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .stats-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .stats-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .quick-action-btn {
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+        }
+        .quick-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        .section-title {
+            color: #495057;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="/">English Exam Generator</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/questions">View Questions</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/question/add">Add Question</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/generate">Generate Exam</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/ai_settings">AI Settings</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    {% set active_page = 'home' %}
+    {% include '_navbar.html' %}
 
     <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="jumbotron">
-                    <h1 class="display-4">English Exam Generator</h1>
-                    <p class="lead">A comprehensive system for managing and generating English exams.</p>
-                    <hr class="my-4">
-                    <p>This application allows you to view, modify, add, and remove questions from the database. You can also generate customized exams based on various criteria.</p>
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                        <a href="/questions" class="btn btn-primary btn-lg me-md-2">View Questions</a>
-                        <a href="/generate" class="btn btn-success btn-lg">Generate Exam</a>
+        <!-- Hero Section -->
+        <div class="hero-section text-center">
+            <div class="container">
+                <h1 class="display-4 fw-bold mb-3">English Exam Generator</h1>
+                <p class="lead mb-4">Powerful tools for creating, managing, and generating comprehensive English exams with AI-powered question reformatting</p>
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="d-grid gap-3 d-md-flex justify-content-md-center">
+                            <a href="/generate" class="btn btn-light btn-lg quick-action-btn">
+                                <i class="bi bi-file-earmark-plus me-2"></i>Generate New Exam
+                            </a>
+                            <a href="/questions" class="btn btn-outline-light btn-lg quick-action-btn">
+                                <i class="bi bi-search me-2"></i>Browse Questions
+                            </a>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- New card for AI reformatting feature -->
-                <div class="card mt-4">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">New Feature: AI Question Reformatting</h5>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="row mb-5">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number">{{ metadata.questions_count or 0 }}</div>
+                    <div class="text-muted">Total Questions</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number">{{ metadata.tags|length or 0 }}</div>
+                    <div class="text-muted">Available Tags</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number">{{ metadata.chapters|length or 0 }}</div>
+                    <div class="text-muted">Organized Chapters</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Features -->
+        <h2 class="section-title text-center">Main Features</h2>
+        <div class="row mb-5">
+            <!-- Question Management -->
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon text-primary">
+                            <i class="bi bi-collection"></i>
+                        </div>
+                        <h5 class="card-title">Question Management</h5>
+                        <p class="card-text">View, add, edit, and organize your question database with powerful filtering and search capabilities.</p>
+                        <div class="d-grid gap-2">
+                            <a href="/questions" class="btn btn-primary">Browse Questions</a>
+                            <a href="/question/add" class="btn btn-outline-primary">Add New Question</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exam Generation -->
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon text-success">
+                            <i class="bi bi-file-earmark-plus"></i>
+                        </div>
+                        <h5 class="card-title">Smart Exam Generation</h5>
+                        <p class="card-text">Create customized exams with flexible filtering by topics, categories, tags, chapters, and years.</p>
+                        <div class="d-grid">
+                            <a href="/generate" class="btn btn-success">Generate Exam</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Reformatting -->
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <div class="feature-icon text-info">
+                            <i class="bi bi-robot"></i>
+                        </div>
+                        <h5 class="card-title">AI Question Reformatting</h5>
+                        <p class="card-text">Enhance your questions with AI-powered reformulations while preserving meaning and gap words.</p>
+                        <div class="d-grid">
+                            <a href="/settings" class="btn btn-info">Configure AI Settings</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Tools -->
+        <h2 class="section-title text-center">Advanced Tools</h2>
+        <div class="row">
+            <!-- Tag Management -->
+            <div class="col-md-6 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <div class="feature-icon text-warning me-3">
+                                <i class="bi bi-tags"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="card-title">Tag & Chapter Management</h5>
+                                <p class="card-text">Organize questions with tags and group them into logical chapters for easier exam creation.</p>
+                                <div class="d-flex gap-2">
+                                    <a href="/tags" class="btn btn-warning btn-sm">Manage Tags</a>
+                                    <a href="/tag-centralizer" class="btn btn-outline-warning btn-sm">Advanced Tools</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings & Import/Export -->
+            <div class="col-md-6 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <div class="feature-icon text-secondary me-3">
+                                <i class="bi bi-gear"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="card-title">Settings & Data Management</h5>
+                                <p class="card-text">Configure AI settings, import/export question databases, and manage application preferences.</p>
+                                <div class="d-flex gap-2">
+                                    <a href="/settings" class="btn btn-secondary btn-sm">Settings</a>
+                                    <a href="/download_questions" class="btn btn-outline-secondary btn-sm">Export Data</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Start Guide -->
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Quick Start Guide</h5>
                     </div>
                     <div class="card-body">
-                        <p>You can now reformat exam questions using artificial intelligence to generate alternative formulations while preserving the original meaning and gap words.</p>
-                        <p>This feature can be found on each question's detail page by clicking the <span class="badge" style="background: linear-gradient(135deg, #6e8efb, #a777e3);">Reformat with AI</span> button.</p>
-                        <p><strong>To get started:</strong></p>
-                        <ol>
-                            <li>Configure your OpenAI API key in the <a href="/ai_settings">AI Settings</a> page</li>
-                            <li>View any question and click the "Reformat with AI" button</li>
-                            <li>Choose from three AI-generated reformulations</li>
-                        </ol>
-                        <div class="text-end">
-                            <a href="/ai_settings" class="btn btn-info">Configure AI Settings</a>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Getting Started:</h6>
+                                <ol class="mb-0">
+                                    <li>Browse existing questions in the <a href="/questions">Question Database</a></li>
+                                    <li>Add new questions using the <a href="/question/add">Add Question</a> form</li>
+                                    <li>Organize questions with <a href="/tags">tags</a> and <a href="/tag-centralizer">chapters</a></li>
+                                    <li>Generate your first exam with the <a href="/generate">Exam Generator</a></li>
+                                </ol>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Advanced Features:</h6>
+                                <ul class="mb-0">
+                                    <li>Use <a href="/tag-centralizer">Tag Centralizer</a> to merge and organize tags</li>
+                                    <li>Configure <a href="/settings">AI settings</a> for question reformatting</li>
+                                    <li>Import/export question databases via <a href="/settings">Settings</a></li>
+                                    <li>Create custom chapters for better question organization</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>

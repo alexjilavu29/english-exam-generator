@@ -10,49 +10,44 @@
         body {
             padding-top: 2rem;
             padding-bottom: 2rem;
+            background-color: #f8f9fa;
         }
         .navbar {
             margin-bottom: 2rem;
         }
+        .questions-container {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
         .filter-section {
-            margin-bottom: 1.5rem;
-            padding: 1rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
             background-color: #f8f9fa;
-            border-radius: 0.25rem;
+            border-radius: 0.375rem;
+            border: 1px solid #e9ecef;
+        }
+        .filter-section h4 {
+            color: #495057;
+            margin-bottom: 1rem;
+            font-weight: 600;
         }
         .question-card {
             margin-bottom: 1rem;
         }
+        .questions-grid {
+            background-color: #f8f9fa;
+            border-radius: 0.375rem;
+            border: 1px solid #e9ecef;
+            padding: 1.5rem;
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="/">English Exam Generator</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/questions">View Questions</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/question/add">Add Question</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/generate">Generate Exam</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/ai_settings">AI Settings</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    {% set active_page = 'questions' %}
+    {% include '_navbar.html' %}
 
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -62,84 +57,88 @@
             </a>
         </div>
         
-        <!-- Filter Section -->
-        <div class="filter-section">
-            <h4>Filter Questions</h4>
-            <form action="/questions" method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label for="topic" class="form-label">Topic</label>
-                    <select class="form-select" id="topic" name="topic">
-                        <option value="">All Topics</option>
-                        {% for topic in metadata.topics %}
-                        <option value="{{ topic }}" {% if topic_filter == topic %}selected{% endif %}>{{ topic }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="category" class="form-label">Category</label>
-                    <select class="form-select" id="category" name="category">
-                        <option value="">All Categories</option>
-                        {% for category in metadata.categories %}
-                        <option value="{{ category }}" {% if category_filter == category %}selected{% endif %}>{{ category }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="year" class="form-label">Year</label>
-                    <select class="form-select" id="year" name="year">
-                        <option value="">All Years</option>
-                        {% for year in metadata.years %}
-                        <option value="{{ year }}" {% if year_filter == year|string %}selected{% endif %}>{{ year }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="tag" class="form-label">Tag</label>
-                    <select class="form-select" id="tag" name="tag">
-                        <option value="">All Tags</option>
-                        {% for tag in metadata.tags %}
-                        <option value="{{ tag }}" {% if tag_filter == tag %}selected{% endif %}>{{ tag }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-12 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary">Apply Filters</button>
-                    <a href="/questions" class="btn btn-secondary ms-2">Clear</a>
-                </div>
-            </form>
-        </div>
-        
-        <!-- Questions List -->
-        <div class="row">
-            {% for question, original_index in indexed_questions %}
-            <div class="col-md-6">
-                <div class="card question-card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span class="badge bg-primary">{{ question.topic }}</span>
-                        <span class="badge bg-secondary">{{ question.category }} ({{ question.year }})</span>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">{{ question.body }}</p>
-                        {% if 'tags' in question and question.tags %}
-                        <div class="mb-2">
-                            {% for tag in question.tags %}
-                            <a href="/tag/{{ tag }}" class="badge bg-info text-dark text-decoration-none">{{ tag }}</a>
+        <div class="questions-container">
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <h4>Filter Questions</h4>
+                <form action="/questions" method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="topic" class="form-label">Topic</label>
+                        <select class="form-select" id="topic" name="topic">
+                            <option value="">All Topics</option>
+                            {% for topic in metadata.topics %}
+                            <option value="{{ topic }}" {% if topic_filter == topic %}selected{% endif %}>{{ topic }}</option>
                             {% endfor %}
-                        </div>
-                        {% endif %}
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="/question/{{ original_index }}?filtered=true{% if topic_filter %}&topic={{ topic_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if year_filter %}&year={{ year_filter }}{% endif %}{% if tag_filter %}&tag={{ tag_filter }}{% endif %}" class="btn btn-sm btn-primary">View Details</a>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">All Categories</option>
+                            {% for category in metadata.categories %}
+                            <option value="{{ category }}" {% if category_filter == category %}selected{% endif %}>{{ category }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="year" class="form-label">Year</label>
+                        <select class="form-select" id="year" name="year">
+                            <option value="">All Years</option>
+                            {% for year in metadata.years %}
+                            <option value="{{ year }}" {% if year_filter == year|string %}selected{% endif %}>{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="tag" class="form-label">Tag</label>
+                        <select class="form-select" id="tag" name="tag">
+                            <option value="">All Tags</option>
+                            {% for tag in metadata.tags %}
+                            <option value="{{ tag }}" {% if tag_filter == tag %}selected{% endif %}>{{ tag }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-12 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        <a href="/questions" class="btn btn-secondary ms-2">Clear</a>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Questions List -->
+            <div class="questions-grid">
+                <div class="row">
+                    {% for question, original_index in indexed_questions %}
+                    <div class="col-md-6">
+                        <div class="card question-card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span class="badge bg-primary">{{ question.topic }}</span>
+                                <span class="badge bg-secondary">{{ question.category }} ({{ question.year }})</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">{{ question.body }}</p>
+                                {% if 'tags' in question and question.tags %}
+                                <div class="mb-2">
+                                    {% for tag in question.tags %}
+                                    <a href="/tag/{{ tag|urlencode }}" class="badge bg-info text-dark text-decoration-none">{{ tag }}</a>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="/question/{{ original_index }}?filtered=true{% if topic_filter %}&topic={{ topic_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if year_filter %}&year={{ year_filter }}{% endif %}{% if tag_filter %}&tag={{ tag_filter }}{% endif %}" class="btn btn-sm btn-primary">View Details</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    {% else %}
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            No questions found matching the selected filters.
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
-            {% else %}
-            <div class="col-12">
-                <div class="alert alert-info">
-                    No questions found matching the selected filters.
-                </div>
-            </div>
-            {% endfor %}
         </div>
     </div>
 

@@ -25,33 +25,8 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="/">English Exam Generator</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/questions">View Questions</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/question/add">Add Question</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/generate">Generate Exam</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/ai_settings">AI Settings</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    {% set active_page = 'settings' %}
+    {% include '_navbar.html' %}
 
     <div class="container">
         <div class="row">
@@ -75,9 +50,10 @@
                                 <label for="model" class="form-label">AI Model</label>
                                 <select class="form-select" id="model" name="model">
                                     <option value="gpt-4o" {% if model == 'gpt-4o' %}selected{% endif %}>GPT-4o</option>
-                                    <option value="gpt-4-turbo" {% if model == 'gpt-4-turbo' %}selected{% endif %}>GPT-4 Turbo</option>
-                                    <option value="gpt-3.5-turbo" {% if model == 'gpt-3.5-turbo' %}selected{% endif %}>GPT-3.5 Turbo</option>
-                                </select>
+                                    <option value="o4-mini-2025-04-16" {% if model == 'o4-mini-2025-04-16' %}selected{% endif %}>O4 Mini</option>
+                                    <option value="gpt-4.1-2025-04-14" {% if model == 'gpt-4.1-2025-04-14' %}selected{% endif %}>GPT 4.1</option>
+                                    <option value="o3-2025-04-16" {% if model == 'o3-2025-04-16' %}selected{% endif %}>O3</option>
+                                    </select>
                                 <div class="form-text">Select the OpenAI model to use for question reformatting.</div>
                             </div>
                             

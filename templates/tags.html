@@ -9,6 +9,7 @@
         body {
             padding-top: 2rem;
             padding-bottom: 2rem;
+            background-color: #f8f9fa;
         }
         .navbar {
             margin-bottom: 2rem;
@@ -16,61 +17,77 @@
         .tag-card {
             margin-bottom: 1rem;
         }
+        .search-box {
+            margin-bottom: 1.5rem;
+        }
+        .tag-card.hidden {
+            display: none !important;
+        }
+        .searchable-tag.hidden {
+            display: none !important;
+        }
+        .no-results {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="/">English Exam Generator</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/questions">View Questions</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/question/add">Add Question</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/generate">Generate Exam</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/tags">Manage Tags</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    {% set active_page = 'tags' %}
+    {% include '_navbar.html' %}
 
     <div class="container">
         <h1 class="mb-4">Manage Tags</h1>
         
+        <!-- Search Box -->
         <div class="row">
+            <div class="col-md-12">
+                <div class="search-box">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="tagSearch" placeholder="Search tags by name..." autocomplete="off">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                            Clear
+                        </button>
+                    </div>
+                    <div class="form-text">
+                        <span id="searchResults">Showing all {{ used_tags|length + unused_tags|length }} tags</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Used Tags -->
             <div class="col-md-12 mb-4">
                 <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">All Tags</h5>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Used Tags ({{ used_tags|length }})</h5>
+                        <small class="text-muted">
+                            <a href="/tag-centralizer" class="btn btn-sm btn-outline-primary">
+                                Advanced Tag Management
+                            </a>
+                        </small>
                     </div>
                     <div class="card-body">
-                        {% if tags %}
-                            <div class="row">
-                                {% for tag in tags %}
-                                <div class="col-md-4">
+                        {% if used_tags %}
+                            <div class="row" id="usedTagsContainer">
+                                {% for tag in used_tags %}
+                                <div class="col-md-4 searchable-tag" data-tag-name="{{ tag.name|lower }}" data-tag-display="{{ tag.name }}">
                                     <div class="card tag-card">
                                         <div class="card-body">
-                                            <h5 class="card-title">{{ tag }}</h5>
-                                            <p class="card-text">{{ tag_counts[tag] }} questions</p>
+                                            <h5 class="card-title">{{ tag.name }}</h5>
+                                            <p class="card-text">{{ tag.count }} questions</p>
                                             <div class="d-flex justify-content-between">
-                                                <a href="/tag/{{ tag }}" class="btn btn-sm btn-primary">View Questions</a>
-                                                <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#renameModal{{ loop.index }}">
+                                                <a href="/tag/{{ tag.name|urlencode }}" class="btn btn-sm btn-primary">View Questions</a>
+                                                <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#renameModal_{{ tag.name|replace(' ', '_') }}">
                                                     Rename
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ loop.index }}">
+                                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal_{{ tag.name|replace(' ', '_') }}">
                                                     Delete
                                                 </button>
                                             </div>
@@ -79,19 +96,19 @@
                                 </div>
                                 
                                 <!-- Rename Modal -->
-                                <div class="modal fade" id="renameModal{{ loop.index }}" tabindex="-1" aria-labelledby="renameModalLabel{{ loop.index }}" aria-hidden="true">
+                                <div class="modal fade" id="renameModal_{{ tag.name|replace(' ', '_') }}" tabindex="-1">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="renameModalLabel{{ loop.index }}">Rename Tag</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                <h5 class="modal-title">Rename Tag</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <form action="/tag/rename" method="post">
                                                 <div class="modal-body">
-                                                    <input type="hidden" name="old_tag" value="{{ tag }}">
+                                                    <input type="hidden" name="old_tag" value="{{ tag.name }}">
                                                     <div class="mb-3">
-                                                        <label for="new_tag{{ loop.index }}" class="form-label">New Tag Name</label>
-                                                        <input type="text" class="form-control" id="new_tag{{ loop.index }}" name="new_tag" value="{{ tag }}" required>
+                                                        <label class="form-label">New Tag Name</label>
+                                                        <input type="text" class="form-control" name="new_tag" value="{{ tag.name }}" required>
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
@@ -104,20 +121,20 @@
                                 </div>
                                 
                                 <!-- Delete Modal -->
-                                <div class="modal fade" id="deleteModal{{ loop.index }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ loop.index }}" aria-hidden="true">
+                                <div class="modal fade" id="deleteModal_{{ tag.name|replace(' ', '_') }}" tabindex="-1">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="deleteModalLabel{{ loop.index }}">Delete Tag</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                <h5 class="modal-title">Delete Tag</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body">
-                                                Are you sure you want to delete the tag "{{ tag }}"? This will remove the tag from all questions.
+                                                Are you sure you want to delete the tag "{{ tag.name }}"? This will remove the tag from all questions.
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <form action="/tag/delete" method="post">
-                                                    <input type="hidden" name="tag" value="{{ tag }}">
+                                                <form action="/tag/delete" method="post" class="d-inline">
+                                                    <input type="hidden" name="tag" value="{{ tag.name }}">
                                                     <button type="submit" class="btn btn-danger">Delete</button>
                                                 </form>
                                             </div>
@@ -127,16 +144,171 @@
                                 {% endfor %}
                             </div>
                         {% else %}
-                            <div class="alert alert-info">
-                                No tags found. Add tags to questions to see them here.
-                            </div>
+                            <p class="text-muted">No tags are currently associated with any questions.</p>
                         {% endif %}
                     </div>
+                </div>
+            </div>
+
+            <!-- Unused Tags -->
+            {% if unused_tags %}
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Unused Tags ({{ unused_tags|length }})</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row" id="unusedTagsContainer">
+                            {% for tag_name in unused_tags %}
+                            <div class="col-md-4 searchable-tag" data-tag-name="{{ tag_name|lower }}" data-tag-display="{{ tag_name }}">
+                                <div class="card tag-card bg-light">
+                                    <div class="card-body d-flex justify-content-between align-items-center">
+                                        <span>{{ tag_name }}</span>
+                                        <div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal_{{ tag_name|replace(' ', '_') }}">
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Delete Modal for Unused Tag -->
+                            <div class="modal fade" id="deleteModal_{{ tag_name|replace(' ', '_') }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Delete Tag</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to delete the tag "{{ tag_name }}"? This tag is not currently used in any questions.
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="/tag/delete" method="post" class="d-inline">
+                                                <input type="hidden" name="tag" value="{{ tag_name }}">
+                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- No Results Message -->
+            <div class="col-md-12">
+                <div class="no-results" id="noResults">
+                    <h5>No tags found</h5>
+                    <p>No tags match your search criteria. Try a different search term or <button type="button" class="btn btn-link p-0" onclick="clearSearch()">clear the search</button>.</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Search functionality
+        const searchInput = document.getElementById('tagSearch');
+        const clearButton = document.getElementById('clearSearch');
+        const searchResults = document.getElementById('searchResults');
+        const noResults = document.getElementById('noResults');
+        
+        const usedTagsContainer = document.getElementById('usedTagsContainer');
+        const unusedTagsContainer = document.getElementById('unusedTagsContainer');
+        const allTags = document.querySelectorAll('.searchable-tag');
+        const totalTags = allTags.length;
+
+        function performSearch() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            allTags.forEach(function(tagElement) {
+                const tagName = tagElement.getAttribute('data-tag-name');
+                
+                if (searchTerm === '' || tagName.includes(searchTerm)) {
+                    tagElement.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    tagElement.classList.add('hidden');
+                }
+            });
+            
+            // Check visibility of sections and show/hide section headers
+            let usedVisible = false;
+            let unusedVisible = false;
+            
+            if (usedTagsContainer) {
+                const visibleUsedTags = usedTagsContainer.querySelectorAll('.searchable-tag:not(.hidden)');
+                usedVisible = visibleUsedTags.length > 0;
+                const usedSection = usedTagsContainer.closest('.card').parentElement;
+                usedSection.style.display = usedVisible || searchTerm === '' ? 'block' : 'none';
+            }
+            
+            if (unusedTagsContainer) {
+                const visibleUnusedTags = unusedTagsContainer.querySelectorAll('.searchable-tag:not(.hidden)');
+                unusedVisible = visibleUnusedTags.length > 0;
+                const unusedSection = unusedTagsContainer.closest('.card').parentElement;
+                unusedSection.style.display = unusedVisible || searchTerm === '' ? 'block' : 'none';
+            }
+
+            // Update results text and no results message
+            if (searchTerm === '') {
+                searchResults.textContent = `Showing all ${totalTags} tags`;
+                noResults.style.display = 'none';
+                // Show all sections when no search term
+                if (usedTagsContainer) {
+                    usedTagsContainer.closest('.card').parentElement.style.display = 'block';
+                }
+                if (unusedTagsContainer) {
+                    unusedTagsContainer.closest('.card').parentElement.style.display = 'block';
+                }
+            } else if (visibleCount === 0) {
+                searchResults.textContent = `No tags found for "${searchInput.value}"`;
+                noResults.style.display = 'block';
+            } else {
+                searchResults.textContent = `Found ${visibleCount} tag${visibleCount !== 1 ? 's' : ''} matching "${searchInput.value}"`;
+                noResults.style.display = 'none';
+            }
+        }
+
+        function clearSearch() {
+            searchInput.value = '';
+            performSearch();
+            searchInput.focus();
+        }
+
+        // Event listeners
+        searchInput.addEventListener('input', performSearch);
+        searchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Escape') {
+                clearSearch();
+            }
+        });
+        
+        clearButton.addEventListener('click', clearSearch);
+
+        // Focus on search input when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            searchInput.focus();
+            // Ensure all sections are visible on page load
+            performSearch();
+        });
+
+        // Keyboard shortcut: Ctrl+F or Cmd+F to focus search
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+        });
+    </script>
 </body>
 </html>

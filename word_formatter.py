@@ -27,7 +27,7 @@ def create_word_document(exam_questions, title="English Exam", include_answers=T
             'title_font_size': 16,
             'heading_font_size': 14,
             'page_orientation': 'portrait',
-            'question_spacing': 12,
+            'question_spacing': 0,
             'include_header_footer': True,
             'include_question_type': True
         }
@@ -147,24 +147,30 @@ def add_questions_to_document(doc, questions, format_options, start_index=1):
         question_index = i + start_index
         q_paragraph = doc.add_paragraph()
         q_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        q_paragraph.paragraph_format.space_after = Pt(2)
         q_run = q_paragraph.add_run(f"{question_index}. {question['body']}")
         q_run.font.size = Pt(format_options.get('font_size', 11))
         q_run.font.name = format_options.get('font_name', 'Calibri')
         q_run.bold = True
         
-        # Answer choices
+        # Answer choices on a single line
+        options_paragraph = doc.add_paragraph()
+        options_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        options_paragraph.paragraph_format.left_indent = Inches(0.25)
+        
+        options_parts = []
         for j, answer in enumerate(question['answers']):
-            option = chr(65 + j)  # A, B, C, D
-            a_paragraph = doc.add_paragraph()
-            a_paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            a_paragraph.paragraph_format.left_indent = Inches(0.25)
-            a_run = a_paragraph.add_run(f"{option}. {answer}")
-            a_run.font.size = Pt(format_options.get('font_size', 11))
-            a_run.font.name = format_options.get('font_name', 'Calibri')
+            option_letter = chr(65 + j)
+            options_parts.append(f"{option_letter}. {answer}")
+        
+        options_text = "   ".join(options_parts)
+        options_run = options_paragraph.add_run(options_text)
+        options_run.font.size = Pt(format_options.get('font_size', 11))
+        options_run.font.name = format_options.get('font_name', 'Calibri')
         
         # Add space between questions
-        spacing = doc.add_paragraph()
-        spacing.paragraph_format.space_after = Pt(format_options.get('question_spacing', 12))
+        spacing = options_paragraph
+        spacing.paragraph_format.space_after = Pt(format_options.get('question_spacing', 6))
 
 def add_header_footer(doc, title):
     """Add header and footer to the document"""

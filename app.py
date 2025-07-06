@@ -1,13 +1,43 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, session
-import json
 import os
 import sys
-import argparse
-from docx import Document
+import json
 import random
+import argparse
+import re
+from unicodedata import normalize
+
+from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, session
+from docx import Document
 from word_formatter import create_word_document
 from ai_formatter import AIFormatter
 from dotenv import load_dotenv, set_key
+
+def slugify(text):
+    if text is None:
+        return ""
+    text = str(text) # Ensure text is a string
+    # Replace / with a hyphen
+    text = text.replace('/', '-')
+    # Normalize unicode characters
+    text = normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
+    # Remove characters that are not alphanumeric, spaces, or hyphens
+    text = re.sub(r'[^\w\s-]', '', text).strip().lower()
+    # Replace whitespace and repeated hyphens with a single hyphen
+    text = re.sub(r'[-\s]+', '-', text)
+    return text
+
+def get_chapter_by_slug(slug):
+    tag_data = load_tag_data()
+    for chapter_id, chapter in tag_data['chapters'].items():
+        if slugify(chapter['name']) == slug:
+            return chapter
+    return None
+
+def get_chapter_id_from_slug(slug):
+    chapter = get_chapter_by_slug(slug)
+    if chapter:
+        return chapter.get('id')
+    return None
 
 # Load environment variables from .env file
 env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
@@ -20,6 +50,10 @@ template_dir = os.path.join(current_dir, 'templates')
 # Initialize Flask app with explicit template folder
 app = Flask(__name__, template_folder=template_dir)
 app.secret_key = os.urandom(24)  # For session management
+
+@app.context_processor
+def utility_processor():
+    return dict(slugify=slugify)
 
 # Initialize AI formatter with API key from .env
 openai_api_key = os.environ.get('OPENAI_API_KEY', '')
@@ -348,21 +382,28 @@ def manage_tags():
     tag_counts = {}
     for tag_name in tag_data['tags']:
         tag_counts[tag_name] = sum(1 for q in questions if 'tags' in q and tag_name in q['tags'])
-        
-    # Separate used and unused tags
-    used_tags = []
-    unused_tags = []
     
     # Sort tags alphabetically for consistent display
-    sorted_tags = sorted(tag_counts.items())
+    all_tags_info = []
+    for tag_name, tag_details in sorted(tag_data['tags'].items()):
+        all_tags_info.append({
+            'name': tag_name,
+            'description': tag_details.get('description', ''),
+            'count': tag_counts.get(tag_name, 0)
+        })
+
+    used_tags = [tag for tag in all_tags_info if tag['count'] > 0]
+    unused_tags = [tag for tag in all_tags_info if tag['count'] == 0]
+
+    # Get feedback messages from session
+    tag_message = session.pop('tag_message', None)
+    tag_error = session.pop('tag_error', None)
     
-    for tag_name, count in sorted_tags:
-        if count > 0:
-            used_tags.append({'name': tag_name, 'count': count})
-        else:
-            unused_tags.append(tag_name)
-    
-    return render_template('tags.html', used_tags=used_tags, unused_tags=unused_tags)
+    return render_template('tags.html', 
+                         used_tags=used_tags, 
+                         unused_tags=unused_tags,
+                         tag_message=tag_message,
+                         tag_error=tag_error)
 
 @app.route('/tag/<path:tag>')
 def view_tag(tag):
@@ -377,41 +418,43 @@ def view_tag(tag):
                           tag=tag,
                           metadata=metadata)
 
-@app.route('/tag/rename', methods=['POST'])
-def rename_tag():
-    old_tag = request.form.get('old_tag')
-    new_tag = request.form.get('new_tag', '').strip()
-    
-    if old_tag and new_tag and old_tag != new_tag:
-        # Update the centralized tag data
-        tag_data = load_tag_data()
-        if old_tag in tag_data['tags']:
-            # Copy the tag data to the new tag name
-            tag_data['tags'][new_tag] = tag_data['tags'][old_tag].copy()
-            tag_data['tags'][new_tag]['name'] = new_tag
+@app.route('/tag/update', methods=['POST'])
+def update_tag():
+    old_name = request.form.get('old_name')
+    new_name = request.form.get('new_name', '').strip()
+    description = request.form.get('description', '').strip()
+
+    if not old_name or not new_name:
+        session['tag_error'] = "Tag name cannot be empty."
+        return redirect(url_for('manage_tags'))
+
+    tag_data = load_tag_data()
+
+    if new_name != old_name and new_name in tag_data['tags']:
+        session['tag_error'] = f"Tag '{new_name}' already exists."
+        return redirect(url_for('manage_tags'))
+
+    if old_name in tag_data['tags']:
+        if old_name != new_name:
+            tag_data['tags'][new_name] = tag_data['tags'].pop(old_name)
+            tag_data['tags'][new_name]['name'] = new_name
             
-            # Remove the old tag
-            del tag_data['tags'][old_tag]
-            
-            # Update chapters that reference this tag
+            questions = load_questions()
+            for q in questions:
+                if 'tags' in q and old_name in q['tags']:
+                    q['tags'] = [new_name if t == old_name else t for t in q['tags']]
+            save_questions(questions)
+
             for chapter in tag_data['chapters'].values():
-                if old_tag in chapter['tags']:
-                    chapter['tags'].remove(old_tag)
-                    if new_tag not in chapter['tags']:
-                        chapter['tags'].append(new_tag)
-            
-            save_tag_data(tag_data)
+                if 'tags' in chapter and old_name in chapter['tags']:
+                    chapter['tags'] = [new_name if t == old_name else t for t in chapter['tags']]
         
-        # Update all questions with the new tag name
-        questions = load_questions()
-        for question in questions:
-            if 'tags' in question and old_tag in question['tags']:
-                question['tags'].remove(old_tag)
-                if new_tag not in question['tags']:
-                    question['tags'].append(new_tag)
-        
-        save_questions(questions)
-    
+        tag_data['tags'][new_name]['description'] = description
+        save_tag_data(tag_data)
+        session['tag_message'] = f"Tag '{old_name}' updated successfully to '{new_name}'."
+    else:
+        session['tag_error'] = f"Tag '{old_name}' not found."
+
     return redirect(url_for('manage_tags'))
 
 @app.route('/tag/delete', methods=['POST'])
@@ -866,32 +909,57 @@ def create_chapter():
     
     return redirect(url_for('tag_centralizer'))
 
-@app.route('/chapter/<chapter_id>/edit', methods=['POST'])
-def edit_chapter(chapter_id):
+@app.route('/chapter/<slug>/edit', methods=['POST'])
+def edit_chapter(slug):
     tag_data = load_tag_data()
     
-    if chapter_id in tag_data['chapters']:
-        name = request.form.get('name', '').strip()
-        description = request.form.get('description', '').strip()
-        selected_tags = request.form.getlist('tags')
-        
-        if name:
-            tag_data['chapters'][chapter_id]['name'] = name
-            tag_data['chapters'][chapter_id]['description'] = description
-            tag_data['chapters'][chapter_id]['tags'] = selected_tags
+    # Find the chapter_id based on slug
+    chapter_id = None
+    for c_id, c in tag_data['chapters'].items():
+        if slugify(c['name']) == slug:
+            chapter_id = c_id
+            break
             
-            save_tag_data(tag_data)
-    
+    if not chapter_id:
+        # Handle case where chapter is not found
+        return redirect(url_for('tag_centralizer'))
+
+    # Get form data
+    new_name = request.form.get('name', '').strip()
+    new_description = request.form.get('description', '').strip()
+    new_tags = request.form.getlist('tags')
+
+    if new_name:
+        # Update chapter details
+        tag_data['chapters'][chapter_id]['name'] = new_name
+        tag_data['chapters'][chapter_id]['description'] = new_description
+        tag_data['chapters'][chapter_id]['tags'] = new_tags
+        save_tag_data(tag_data)
+            
     return redirect(url_for('tag_centralizer'))
 
-@app.route('/chapter/<chapter_id>/delete', methods=['POST'])
-def delete_chapter(chapter_id):
+@app.route('/chapter/<slug>/delete', methods=['POST'])
+def delete_chapter(slug):
+    chapter_id = get_chapter_id_from_slug(slug)
+    if not chapter_id:
+        return redirect(url_for('tag_centralizer'))
+
     tag_data = load_tag_data()
-    
     if chapter_id in tag_data['chapters']:
+        # Get the name of the chapter before deleting it
+        chapter_name_to_delete = tag_data['chapters'][chapter_id].get('name')
+
         del tag_data['chapters'][chapter_id]
         save_tag_data(tag_data)
-    
+        
+        # Also remove chapter from any question that has it
+        if chapter_name_to_delete:
+            questions = load_questions()
+            for q in questions:
+                if 'chapter' in q and q['chapter'] == chapter_name_to_delete:
+                    del q['chapter']
+            save_questions(questions)
+        
     return redirect(url_for('tag_centralizer'))
 
 # Advanced tag management routes
@@ -970,6 +1038,25 @@ def merge_tags():
     
     return redirect(url_for('tag_centralizer'))
 
+@app.route('/tag/create', methods=['POST'])
+def create_tag():
+    tag_name = request.form.get('tag_name', '').strip()
+    tag_description = request.form.get('tag_description', '').strip()
+
+    if tag_name:
+        tag_data = load_tag_data()
+        if tag_name not in tag_data['tags']:
+            tag_data['tags'][tag_name] = {
+                "name": tag_name,
+                "description": tag_description
+            }
+            save_tag_data(tag_data)
+            session['tag_message'] = f"Tag '{tag_name}' created successfully."
+        else:
+            session['tag_error'] = f"Tag '{tag_name}' already exists."
+
+    return redirect(url_for('tag_centralizer'))
+
 @app.route('/tag/add-orphaned', methods=['POST'])
 def add_orphaned_tags():
     orphaned_tags = request.form.getlist('orphaned_tags')
@@ -984,17 +1071,6 @@ def add_orphaned_tags():
                     "description": ""
                 }
         
-        save_tag_data(tag_data)
-    
-    return redirect(url_for('tag_centralizer'))
-
-@app.route('/tag/<tag_name>/update', methods=['POST'])
-def update_tag(tag_name):
-    new_description = request.form.get('description', '').strip()
-    
-    tag_data = load_tag_data()
-    if tag_name in tag_data['tags']:
-        tag_data['tags'][tag_name]['description'] = new_description
         save_tag_data(tag_data)
     
     return redirect(url_for('tag_centralizer'))

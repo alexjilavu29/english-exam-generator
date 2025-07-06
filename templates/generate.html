@@ -43,206 +43,206 @@
         <h1 class="mb-4">Generate a New Exam</h1>
         
         <div class="exam-form-container">
-            <form action="/generate" method="post">
-                <div class="form-section">
-                    <h4>Question Distribution</h4>
-                    <div class="row align-items-center mb-3">
-                        <div class="col-md-6">
-                            <label for="vocab_percent" class="form-label">Vocabulary Questions: <span id="vocab_value">50</span>%</label>
-                            <input type="range" class="form-range" id="vocab_percent" name="vocab_percent" min="0" max="100" value="50" oninput="updatePercentages()">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="grammar_percent" class="form-label">Grammar Questions: <span id="grammar_value">50</span>%</label>
-                            <input type="range" class="form-range" id="grammar_percent" disabled value="50">
-                        </div>
+        <form action="/generate" method="post">
+            <div class="form-section">
+                <h4>Question Distribution</h4>
+                <div class="row align-items-center mb-3">
+                    <div class="col-md-6">
+                        <label for="vocab_percent" class="form-label">Vocabulary Questions: <span id="vocab_value">50</span>%</label>
+                        <input type="range" class="form-range" id="vocab_percent" name="vocab_percent" min="0" max="100" value="50" oninput="updatePercentages()">
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="num_questions" class="form-label">Number of Questions</label>
-                        <input type="number" class="form-control" id="num_questions" name="num_questions" min="1" value="10" required>
+                    <div class="col-md-6">
+                        <label for="grammar_percent" class="form-label">Grammar Questions: <span id="grammar_value">50</span>%</label>
+                        <input type="range" class="form-range" id="grammar_percent" disabled value="50">
                     </div>
                 </div>
                 
-                <div class="form-section">
-                    <h4>Question Filters</h4>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Topics</label>
-                            <div class="card">
-                                <div class="card-body">
-                                    {% for topic in metadata.topics %}
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="topics" value="{{ topic }}" id="topic_{{ loop.index }}">
-                                        <label class="form-check-label" for="topic_{{ loop.index }}">
-                                            {{ topic }}
-                                        </label>
-                                    </div>
-                                    {% endfor %}
+                <div class="mb-3">
+                    <label for="num_questions" class="form-label">Number of Questions</label>
+                        <input type="number" class="form-control" id="num_questions" name="num_questions" min="1" value="10" required>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h4>Question Filters</h4>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Topics</label>
+                        <div class="card">
+                            <div class="card-body">
+                                {% for topic in metadata.topics %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="topics" value="{{ topic }}" id="topic_{{ loop.index }}">
+                                    <label class="form-check-label" for="topic_{{ loop.index }}">
+                                        {{ topic }}
+                                    </label>
                                 </div>
+                                {% endfor %}
                             </div>
-                            <div class="form-text">Leave all unchecked to include all topics.</div>
                         </div>
-                        
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Categories</label>
-                            <div class="card">
-                                <div class="card-body">
-                                    {% for category in metadata.categories %}
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="categories" value="{{ category }}" id="category_{{ loop.index }}">
-                                        <label class="form-check-label" for="category_{{ loop.index }}">
-                                            {{ category }}
-                                        </label>
-                                    </div>
-                                    {% endfor %}
+                        <div class="form-text">Leave all unchecked to include all topics.</div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Categories</label>
+                        <div class="card">
+                            <div class="card-body">
+                                {% for category in metadata.categories %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="categories" value="{{ category }}" id="category_{{ loop.index }}">
+                                    <label class="form-check-label" for="category_{{ loop.index }}">
+                                        {{ category }}
+                                    </label>
                                 </div>
+                                {% endfor %}
                             </div>
-                            <div class="form-text">Leave all unchecked to include all categories.</div>
                         </div>
-                        
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Tags</label>
-                            <div class="card">
+                        <div class="form-text">Leave all unchecked to include all categories.</div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Tags</label>
+                        <div class="card">
                                 <div class="card-body" id="tags-card-body">
-                                    {% if metadata.tags %}
+                                {% if metadata.tags %}
                                         <div class="mb-2">
                                             <input type="text" id="tagSearch" class="form-control form-control-sm" placeholder="Search tags..." autocomplete="off">
                                         </div>
                                         <div id="tags-list" style="max-height: 200px; overflow-y: auto;">
-                                            {% for tag in metadata.tags %}
+                                    {% for tag in metadata.tags %}
                                             <div class="tag-item-container" data-tag-name="{{ tag }}">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" name="tags" value="{{ tag }}" id="tag_{{ loop.index }}">
-                                                    <label class="form-check-label" for="tag_{{ loop.index }}">
-                                                        {{ tag }}
-                                                    </label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="tags" value="{{ tag }}" id="tag_{{ loop.index }}">
+                                        <label class="form-check-label" for="tag_{{ loop.index }}">
+                                            {{ tag }}
+                                        </label>
                                                 </div>
-                                            </div>
-                                            {% endfor %}
+                                    </div>
+                                    {% endfor %}
                                         </div>
-                                    {% else %}
-                                        <p class="text-muted">No tags available</p>
-                                    {% endif %}
-                                </div>
+                                {% else %}
+                                    <p class="text-muted">No tags available</p>
+                                {% endif %}
                             </div>
-                            <div class="form-text">Leave all unchecked to include all questions regardless of tags.</div>
                         </div>
+                        <div class="form-text">Leave all unchecked to include all questions regardless of tags.</div>
                     </div>
-                    
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Chapters</label>
-                            <div class="card">
-                                <div class="card-body">
-                                    {% if metadata.chapters %}
-                                        {% for chapter in metadata.chapters %}
-                                        <div class="form-check">
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Chapters</label>
+                        <div class="card">
+                            <div class="card-body">
+                                {% if metadata.chapters %}
+                                    {% for chapter in metadata.chapters %}
+                                    <div class="form-check">
                                             <input class="form-check-input chapter-checkbox" type="checkbox" name="chapters" value="{{ chapter.id }}" id="chapter_{{ loop.index }}" data-tags='{{ chapter.tags|tojson }}'>
-                                            <label class="form-check-label" for="chapter_{{ loop.index }}">
-                                                <strong>{{ chapter.name }}</strong>
-                                                {% if chapter.description %}
-                                                <small class="text-muted d-block">{{ chapter.description }}</small>
-                                                {% endif %}
-                                                <small class="text-info d-block">Tags: {% for tag in chapter.tags %}{{ tag }}{% if not loop.last %}, {% endif %}{% endfor %}</small>
-                                            </label>
-                                        </div>
-                                        {% endfor %}
-                                    {% else %}
-                                        <p class="text-muted">No chapters available. <a href="/tag-centralizer">Create chapters</a> to organize your tags.</p>
-                                    {% endif %}
-                                </div>
+                                        <label class="form-check-label" for="chapter_{{ loop.index }}">
+                                            <strong>{{ chapter.name }}</strong>
+                                            {% if chapter.description %}
+                                            <small class="text-muted d-block">{{ chapter.description }}</small>
+                                            {% endif %}
+                                            <small class="text-info d-block">Tags: {% for tag in chapter.tags %}{{ tag }}{% if not loop.last %}, {% endif %}{% endfor %}</small>
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted">No chapters available. <a href="/tag-centralizer">Create chapters</a> to organize your tags.</p>
+                                {% endif %}
                             </div>
-                            <div class="form-text">Select chapters to include all questions from their associated tags. This will be combined with individually selected tags above.</div>
                         </div>
+                        <div class="form-text">Select chapters to include all questions from their associated tags. This will be combined with individually selected tags above.</div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="min_year" class="form-label">Minimum Year</label>
+                        <input type="number" class="form-control" id="min_year" name="min_year" min="1900" max="2100" value="{{ metadata.years[0] }}">
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="min_year" class="form-label">Minimum Year</label>
-                            <input type="number" class="form-control" id="min_year" name="min_year" min="1900" max="2100" value="{{ metadata.years[0] }}">
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="max_year" class="form-label">Maximum Year</label>
-                            <input type="number" class="form-control" id="max_year" name="max_year" min="1900" max="2100" value="{{ metadata.years[-1] }}">
+                    <div class="col-md-6 mb-3">
+                        <label for="max_year" class="form-label">Maximum Year</label>
+                        <input type="number" class="form-control" id="max_year" name="max_year" min="1900" max="2100" value="{{ metadata.years[-1] }}">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h4>Document Formatting</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="exam_title" class="form-label">Exam Title</label>
+                        <input type="text" class="form-control" id="exam_title" name="exam_title" value="English Exam">
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" id="include_answers" name="include_answers" checked>
+                            <label class="form-check-label" for="include_answers">
+                                Include Answer Key
+                            </label>
                         </div>
                     </div>
                 </div>
                 
-                <div class="form-section">
-                    <h4>Document Formatting</h4>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="exam_title" class="form-label">Exam Title</label>
-                            <input type="text" class="form-control" id="exam_title" name="exam_title" value="English Exam">
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <div class="form-check mt-4">
-                                <input class="form-check-input" type="checkbox" id="include_answers" name="include_answers" checked>
-                                <label class="form-check-label" for="include_answers">
-                                    Include Answer Key
-                                </label>
-                            </div>
-                        </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="font_name" class="form-label">Font</label>
+                        <select class="form-select" id="font_name" name="font_name">
+                            <option value="Calibri">Calibri</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Verdana">Verdana</option>
+                            <option value="Tahoma">Tahoma</option>
+                        </select>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="font_name" class="form-label">Font</label>
-                            <select class="form-select" id="font_name" name="font_name">
-                                <option value="Calibri">Calibri</option>
-                                <option value="Arial">Arial</option>
-                                <option value="Times New Roman">Times New Roman</option>
-                                <option value="Verdana">Verdana</option>
-                                <option value="Tahoma">Tahoma</option>
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-4 mb-3">
-                            <label for="font_size" class="form-label">Font Size</label>
-                            <select class="form-select" id="font_size" name="font_size">
-                                <option value="10">10</option>
-                                <option value="11" selected>11</option>
-                                <option value="12">12</option>
-                                <option value="14">14</option>
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-4 mb-3">
-                            <label for="page_orientation" class="form-label">Page Orientation</label>
-                            <select class="form-select" id="page_orientation" name="page_orientation">
-                                <option value="portrait">Portrait</option>
-                                <option value="landscape">Landscape</option>
-                            </select>
-                        </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="font_size" class="form-label">Font Size</label>
+                        <select class="form-select" id="font_size" name="font_size">
+                            <option value="10">10</option>
+                            <option value="11" selected>11</option>
+                            <option value="12">12</option>
+                            <option value="14">14</option>
+                        </select>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="include_header_footer" name="include_header_footer" checked>
-                                <label class="form-check-label" for="include_header_footer">
-                                    Include Header and Footer
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="include_question_type" name="include_question_type" checked>
-                                <label class="form-check-label" for="include_question_type">
-                                    Group Questions by Type (Vocabulary/Grammar)
-                                </label>
-                            </div>
-                        </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="page_orientation" class="form-label">Page Orientation</label>
+                        <select class="form-select" id="page_orientation" name="page_orientation">
+                            <option value="portrait">Portrait</option>
+                            <option value="landscape">Landscape</option>
+                        </select>
                     </div>
                 </div>
                 
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <button type="submit" class="btn btn-success btn-lg">Generate Exam</button>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="include_header_footer" name="include_header_footer" checked>
+                            <label class="form-check-label" for="include_header_footer">
+                                Include Header and Footer
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="include_question_type" name="include_question_type" checked>
+                            <label class="form-check-label" for="include_question_type">
+                                Group Questions by Type (Vocabulary/Grammar)
+                            </label>
+                        </div>
+                    </div>
                 </div>
-            </form>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="submit" class="btn btn-success btn-lg">Generate Exam</button>
+            </div>
+        </form>
         </div>
     </div>
 

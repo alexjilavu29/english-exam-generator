@@ -25,11 +25,22 @@
             background-color: #f8f9fa;
         }
         .chapter-item {
-            border: 1px solid #0d6efd;
+            border-left: 4px solid #0d6efd;
             border-radius: 0.375rem;
             padding: 1rem;
             margin-bottom: 1rem;
-            background-color: #f0f8ff;
+            background-color: #eef5ff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s ease-in-out;
+        }
+        .chapter-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .chapter-description {
+            background-color: #fff;
+            border: 1px solid #d1e3ff;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.25rem;
         }
         .tag-badge {
             display: inline-block;
@@ -119,6 +130,22 @@
         {% set _ = session.pop('merge_error') %}
         {% endif %}
 
+        {% if session.tag_message %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session.tag_message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% set _ = session.pop('tag_message') %}
+        {% endif %}
+        
+        {% if session.tag_error %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session.tag_error }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% set _ = session.pop('tag_error') %}
+        {% endif %}
+
         <div class="row">
             <!-- Chapter Management -->
             <div class="col-md-6">
@@ -137,7 +164,7 @@
                                     <div class="flex-grow-1">
                                         <h6 class="mb-1">{{ chapter.name }}</h6>
                                         {% if chapter.description %}
-                                        <p class="mb-2 text-muted small">{{ chapter.description }}</p>
+                                        <p class="mb-2 fst-italic chapter-description">{{ chapter.description.replace('\n', '<br>')|safe }}</p>
                                         {% endif %}
                                         <div class="mb-2">
                                             {% for tag in chapter.tags %}
@@ -168,7 +195,7 @@
                                             <h5 class="modal-title">Edit Chapter</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                         </div>
-                                        <form action="/chapter/{{ chapter.id }}/edit" method="post">
+                                        <form action="{{ url_for('edit_chapter', slug=slugify(chapter.name)) }}" method="post">
                                             <div class="modal-body">
                                                 <div class="mb-3">
                                                     <label for="chapterName{{ loop.index }}" class="form-label">Chapter Name</label>
@@ -241,7 +268,7 @@
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                            <form action="/chapter/{{ chapter.id }}/delete" method="post" class="d-inline">
+                                            <form action="{{ url_for('delete_chapter', slug=slugify(chapter.name)) }}" method="post" class="d-inline">
                                                 <button type="submit" class="btn btn-danger">Delete Chapter</button>
                                             </form>
                                         </div>
@@ -258,14 +285,35 @@
                 </div>
             </div>
 
-            <!-- Tag Management -->
+            <!-- Advanced Tag Management -->
             <div class="col-md-6">
+                <!-- Create New Tag -->
                 <div class="card section-card">
                     <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Create New Tag</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Create a new tag, even if it's not used in any questions yet.</p>
+                        <form action="{{ url_for('create_tag') }}" method="post">
+                            <div class="mb-3">
+                                <label for="tagName" class="form-label">Tag Name</label>
+                                <input type="text" class="form-control" id="tagName" name="tag_name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tagDescription" class="form-label">Description (Optional)</label>
+                                <textarea class="form-control" id="tagDescription" name="tag_description" rows="2"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success">Create Tag</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Merge Tags -->
+                <div class="card section-card">
+                    <div class="card-header bg-info text-white">
                         <h5 class="mb-0">Advanced Tag Management</h5>
                     </div>
                     <div class="card-body">
-                        <!-- Merge Tags -->
                         <div class="mb-4">
                             <h6>Merge Tags</h6>
                             <div class="alert alert-warning small mb-2">
@@ -315,81 +363,33 @@
                         </div>
 
                         <!-- Orphaned Tags -->
-                        {% if orphaned_tags %}
-                        <div class="mb-4">
-                            <h6>Orphaned Tags</h6>
-                            <p class="small text-muted">These tags exist in questions but not in the centralized system:</p>
-                            <form action="/tag/add-orphaned" method="post">
-                                {% for tag in orphaned_tags %}
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="orphaned_tags" value="{{ tag }}" id="orphaned{{ loop.index }}" checked>
-                                    <label class="form-check-label" for="orphaned{{ loop.index }}">
-                                        {{ tag }}
-                                    </label>
-                                </div>
-                                {% endfor %}
-                                <button type="submit" class="btn btn-secondary btn-sm mt-2">Add Selected Tags</button>
-                            </form>
+                        <div class="card section-card">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0">Orphaned Tags</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if orphaned_tags %}
+                                    <p>Found {{ orphaned_tags|length }} tag(s) in questions that are not in the centralized list. Add them to manage their properties.</p>
+                                    <form action="{{ url_for('add_orphaned_tags') }}" method="post">
+                                        <ul class="list-group mb-3">
+                                            {% for tag in orphaned_tags %}
+                                                <li class="list-group-item">
+                                                    <input class="form-check-input me-1" type="checkbox" name="orphaned_tags" value="{{ tag }}" id="orphan-{{ loop.index }}">
+                                                    <label class="form-check-label" for="orphan-{{ loop.index }}">{{ tag }}</label>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                        <button type="submit" class="btn btn-warning">Add Selected Tags</button>
+                                    </form>
+                                {% else %}
+                                    <p class="mb-0">No orphaned tags found. All tags in your questions are accounted for.</p>
+                                {% endif %}
+                            </div>
                         </div>
-                        {% endif %}
+
                     </div>
                 </div>
 
-                <!-- All Tags List -->
-                <div class="card section-card">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">All Tags ({{ tag_data.tags|length }})</h5>
-                    </div>
-                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                        <!-- Search Tags -->
-                        <div class="search-box">
-                            <input type="text" id="tagSearch" class="form-control" placeholder="Search tags...">
-                        </div>
-                        <div id="tagList">
-                            {% for tag_name, tag_info in tag_data.tags.items() %}
-                            <div class="tag-item searchable-tag" data-tag-name="{{ tag_name.lower() }}">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1">{{ tag_name }}</h6>
-                                        <small class="text-muted">{{ tag_counts.get(tag_name, 0) }} questions</small>
-                                        {% if tag_info.description %}
-                                        <p class="mb-0 small">{{ tag_info.description }}</p>
-                                        {% endif %}
-                                    </div>
-                                    <div class="action-buttons">
-                                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editTagModal{{ loop.index }}">Edit</button>
-                                        <a href="/tag/{{ tag_name }}" class="btn btn-sm btn-outline-info">View</a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Edit Tag Modal -->
-                            <div class="modal fade" id="editTagModal{{ loop.index }}" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Edit Tag: {{ tag_name }}</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <form action="/tag/{{ tag_name }}/update" method="post">
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <label for="tagDescription{{ loop.index }}" class="form-label">Description</label>
-                                                    <textarea class="form-control" id="tagDescription{{ loop.index }}" name="description" rows="3">{{ tag_info.description }}</textarea>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <button type="submit" class="btn btn-primary">Save Changes</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -782,19 +782,6 @@
         }
     </script>
     
-    <script>
-        // Initialize chapter tag management after DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // Setup create chapter tag search
-            setupTagSearch('create');
-            
-            // Setup edit chapter tag search for each modal
-            {% if tag_data.chapters %}
-            {% for chapter_id, chapter in tag_data.chapters.items() %}
-            setupTagSearch('edit{{ loop.index }}');
-            {% endfor %}
-            {% endif %}
-        });
-    </script>
+
 </body>
 </html> 

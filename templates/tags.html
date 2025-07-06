@@ -41,6 +41,20 @@
     <div class="container">
         <h1 class="mb-4">Manage Tags</h1>
         
+        <!-- Feedback Messages -->
+        {% if tag_message %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ tag_message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+        {% if tag_error %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ tag_error }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+
         <!-- Search Box -->
         <div class="row">
             <div class="col-md-12">
@@ -83,11 +97,11 @@
                                             <h5 class="card-title">{{ tag.name }}</h5>
                                             <p class="card-text">{{ tag.count }} questions</p>
                                             <div class="d-flex justify-content-between">
-                                                <a href="/tag/{{ tag.name|urlencode }}" class="btn btn-sm btn-primary">View Questions</a>
-                                                <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#renameModal_{{ tag.name|replace(' ', '_') }}">
-                                                    Rename
+                                                <a href="/tag/{{ tag.name|urlencode }}" class="btn btn-sm btn-primary">View</a>
+                                                <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal_{{ loop.index }}">
+                                                    Edit
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal_{{ tag.name|replace(' ', '_') }}">
+                                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal_used_{{ loop.index }}">
                                                     Delete
                                                 </button>
                                             </div>
@@ -95,20 +109,24 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Rename Modal -->
-                                <div class="modal fade" id="renameModal_{{ tag.name|replace(' ', '_') }}" tabindex="-1">
+                                <!-- Edit Modal -->
+                                <div class="modal fade" id="editModal_{{ loop.index }}" tabindex="-1">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title">Rename Tag</h5>
+                                                <h5 class="modal-title">Edit Tag</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
-                                            <form action="/tag/rename" method="post">
+                                            <form action="{{ url_for('update_tag') }}" method="post">
                                                 <div class="modal-body">
-                                                    <input type="hidden" name="old_tag" value="{{ tag.name }}">
+                                                    <input type="hidden" name="old_name" value="{{ tag.name }}">
                                                     <div class="mb-3">
-                                                        <label class="form-label">New Tag Name</label>
-                                                        <input type="text" class="form-control" name="new_tag" value="{{ tag.name }}" required>
+                                                        <label class="form-label">Tag Name</label>
+                                                        <input type="text" class="form-control" name="new_name" value="{{ tag.name }}" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Description</label>
+                                                        <textarea class="form-control" name="description" rows="3">{{ tag.description }}</textarea>
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
@@ -121,7 +139,7 @@
                                 </div>
                                 
                                 <!-- Delete Modal -->
-                                <div class="modal fade" id="deleteModal_{{ tag.name|replace(' ', '_') }}" tabindex="-1">
+                                <div class="modal fade" id="deleteModal_used_{{ loop.index }}" tabindex="-1">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <div class="modal-header">
@@ -159,13 +177,16 @@
                     </div>
                     <div class="card-body">
                         <div class="row" id="unusedTagsContainer">
-                            {% for tag_name in unused_tags %}
-                            <div class="col-md-4 searchable-tag" data-tag-name="{{ tag_name|lower }}" data-tag-display="{{ tag_name }}">
+                            {% for tag in unused_tags %}
+                            <div class="col-md-4 searchable-tag" data-tag-name="{{ tag.name|lower }}" data-tag-display="{{ tag.name }}">
                                 <div class="card tag-card bg-light">
                                     <div class="card-body d-flex justify-content-between align-items-center">
-                                        <span>{{ tag_name }}</span>
+                                        <span>{{ tag.name }}</span>
                                         <div>
-                                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal_{{ tag_name|replace(' ', '_') }}">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal_unused_{{ loop.index }}">
+                                                Edit
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal_unused_{{ loop.index }}">
                                                 Delete
                                             </button>
                                         </div>
@@ -173,8 +194,37 @@
                                 </div>
                             </div>
                             
+                            <!-- Edit Modal for Unused Tag -->
+                            <div class="modal fade" id="editModal_unused_{{ loop.index }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Tag</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form action="{{ url_for('update_tag') }}" method="post">
+                                            <div class="modal-body">
+                                                <input type="hidden" name="old_name" value="{{ tag.name }}">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Tag Name</label>
+                                                    <input type="text" class="form-control" name="new_name" value="{{ tag.name }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Description</label>
+                                                    <textarea class="form-control" name="description" rows="3">{{ tag.description }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Delete Modal for Unused Tag -->
-                            <div class="modal fade" id="deleteModal_{{ tag_name|replace(' ', '_') }}" tabindex="-1">
+                            <div class="modal fade" id="deleteModal_unused_{{ loop.index }}" tabindex="-1">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header">
@@ -182,12 +232,12 @@
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                         </div>
                                         <div class="modal-body">
-                                            Are you sure you want to delete the tag "{{ tag_name }}"? This tag is not currently used in any questions.
+                                            Are you sure you want to delete the tag "{{ tag.name }}"? This tag is not currently used in any questions.
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                             <form action="/tag/delete" method="post" class="d-inline">
-                                                <input type="hidden" name="tag" value="{{ tag_name }}">
+                                                <input type="hidden" name="tag" value="{{ tag.name }}">
                                                 <button type="submit" class="btn btn-danger">Delete</button>
                                             </form>
                                         </div>
@@ -239,7 +289,7 @@
                     tagElement.classList.add('hidden');
                 }
             });
-            
+
             // Check visibility of sections and show/hide section headers
             let usedVisible = false;
             let unusedVisible = false;

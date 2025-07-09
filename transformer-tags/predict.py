@@ -1,10 +1,11 @@
 import torch
+from transformers import RobertaForSequenceClassification, RobertaTokenizerFast
 from transformers import BertTokenizerFast, BertForSequenceClassification
 import pickle
 import numpy as np
 
-model = BertForSequenceClassification.from_pretrained("./bert")
-tokenizer = BertTokenizerFast.from_pretrained("./bert")
+model = RobertaForSequenceClassification.from_pretrained("./bert")
+tokenizer = RobertaTokenizerFast.from_pretrained("./bert")
 
 with open("./bert/tag_classes.pkl", "rb") as f:
     classes = pickle.load(f)
@@ -48,4 +49,13 @@ def predict_top_k(texts, k=2):
 
 new_questions = [
     "We had to take the car to work because the bus drivers are on strike."]
-print(predict_top_k(new_questions, 4))
+
+print(predict_top_k(new_questions, 2))
+
+# threshold = 0.6
+# count = 100
+# while (count >= 3):
+#     tags = predict_tags(new_questions, threshold)
+#     count = len(tags)
+#     threshold = threshold - 0.01
+#     print(tags)

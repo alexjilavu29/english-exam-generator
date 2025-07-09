@@ -79,4 +79,4 @@ questions_with_funny_chars = [
 print("Questions with funny chars length:")
 print(len(questions_with_funny_chars))
 
-print(json.dumps(questions_with_funny_chars, indent=2, ensure_ascii=False))
+# print(json.dumps(questions_with_funny_chars, indent=2, ensure_ascii=False))

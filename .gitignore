@@ -3,3 +3,4 @@ __pycache__
 *.env
 /transformer-tags/bert
 /transformer-tags/bert-old
+/transformer-tags/roberta_model

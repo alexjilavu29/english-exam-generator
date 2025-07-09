@@ -1,0 +1,18 @@
+services:
+  trainer:
+    build: .
+    image: ai-image
+    container_name: transformer-trainer
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    command: >
+      bash -c "
+        python predict.py
+      "
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+# docker build . -t ai-image -f ./Dockerfile

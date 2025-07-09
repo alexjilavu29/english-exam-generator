@@ -14,7 +14,7 @@ from sklearn.utils.class_weight import compute_class_weight
 
 from data import questions_with_tags
 
-model = "roberta-base"
+model = "roberta-large"
 
 texts = [item["body"] for item in questions_with_tags]
 tag_lists = [item["tags"] for item in questions_with_tags]
@@ -25,8 +25,9 @@ mlb = MultiLabelBinarizer()
 tag_matrix = mlb.fit_transform(tag_lists)
 
 label_counts = np.sum(tag_matrix, axis=0)
-weights = 1.0 / (label_counts + 1e-6)
-weights = weights / weights.sum()  # normalizare
+neg_counts = tag_matrix.shape[0] - label_counts
+weights = torch.tensor(
+    neg_counts / (label_counts + 1e-6), dtype=torch.float32)
 
 
 class WeightedTrainer(Trainer):
@@ -85,8 +86,6 @@ model = RobertaForSequenceClassification.from_pretrained(
     problem_type="multi_label_classification"
 )
 
-model.config.loss = BCEWithLogitsLoss()
-
 
 def compute_metrics(pred):
     logits, labels = pred
@@ -115,32 +114,33 @@ training_args = TrainingArguments(
     learning_rate=2e-5,
     per_device_train_batch_size=16,
     per_device_eval_batch_size=16,
-    num_train_epochs=4,
-    weight_decay=0.01,
+    num_train_epochs=16,
+    weight_decay=0.005,
     warmup_steps=500,
     lr_scheduler_type="linear",
     load_best_model_at_end=True,
     metric_for_best_model="f1_micro",
 )
 
-# trainer = Trainer(
-#     model=model,
-#     args=training_args,
-#     train_dataset=train_dataset,
-#     eval_dataset=eval_dataset,
-#     tokenizer=tokenizer,
-#     data_collator=data_collator,
-#     compute_metrics=compute_metrics,
-# )
-trainer = WeightedTrainer(
+trainer = Trainer(
     model=model,
     args=training_args,
     train_dataset=train_dataset,
     eval_dataset=eval_dataset,
     tokenizer=tokenizer,
+    data_collator=data_collator,
     compute_metrics=compute_metrics,
-    class_weights=class_weights,
 )
+
+# trainer = WeightedTrainer(
+#     model=model,
+#     args=training_args,
+#     train_dataset=train_dataset,
+#     eval_dataset=eval_dataset,
+#     tokenizer=tokenizer,
+#     compute_metrics=compute_metrics,
+#     class_weights=class_weights,
+# )
 
 trainer.train()
 

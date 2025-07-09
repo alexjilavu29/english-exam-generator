@@ -7,3 +7,12 @@ Questions without tags length:
 Idei:
 transformer
 gemini
+
+https://medium.com/@shaikhrayyan123/a-comprehensive-guide-to-understanding-bert-from-beginners-to-advanced-2379699e2b51
+
+https://wandb.ai/mukilan/BERT_Sentiment_Analysis/reports/An-Introduction-to-BERT-And-How-To-Use-It--VmlldzoyNTIyOTA1
+
+There are two steps to the BERT framework:
+Pre-training: The model is trained on unlabelled data over two unsupervised pre-training tasks (Masked Language Modeling and Next Sequence Prediction)
+
+Fine-tuning: The BERT model is initialized with pre-trained parameters and these parameters are fine-tuned using labeled data from downstream tasks like Text Similarity, Question Answer pairs, Classification, etc.

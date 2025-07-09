@@ -1,0 +1,6 @@
+pip install transformers datasets scikit-learn torch
+
+mergea si cu pipenv, dar mai rapid asa
+
+
+ImportError: Using the `Trainer` with `PyTorch` requires `accelerate>=0.26.0`: Please run `pip install transformers[torch]` or `pip install 'accelerate>=0.26.0'`

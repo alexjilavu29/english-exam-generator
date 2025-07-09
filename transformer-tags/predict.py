@@ -32,6 +32,20 @@ def predict_tags(texts, threshold=0.4):
     return results
 
 
+def predict_top_k(texts, k=2):
+    inputs = tokenizer(texts, padding=True, truncation=True,
+                       max_length=128, return_tensors="pt")
+    with torch.no_grad():
+        outputs = model(**inputs)
+    probs = torch.sigmoid(outputs.logits).cpu().numpy()
+    topk_indices = np.argsort(probs, axis=1)[:, -k:]
+
+    results = []
+    for indices in topk_indices:
+        results.append([classes[i] for i in indices])
+    return results
+
+
 new_questions = [
-    "Throughout the years, we have remained on good grips with our neighbors."]
-print(predict_tags(new_questions))
+    "We had to take the car to work because the bus drivers are on strike."]
+print(predict_top_k(new_questions, 4))

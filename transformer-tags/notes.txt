@@ -1,0 +1,9 @@
+Questions with tags length:
+1422
+Questions without tags length:
+4049
+
+
+Idei:
+transformer
+gemini

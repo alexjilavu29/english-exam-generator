@@ -1,0 +1,823 @@
+{
+  "tags": {
+    "Reformatted with AI": {
+      "name": "Reformatted with AI",
+      "description": ""
+    },
+    "adverbial phrases": {
+      "name": "adverbial phrases",
+      "description": ""
+    },
+    "agreement": {
+      "name": "agreement",
+      "description": ""
+    },
+    "articles": {
+      "name": "articles",
+      "description": ""
+    },
+    "causatives": {
+      "name": "causatives",
+      "description": ""
+    },
+    "character/personality": {
+      "name": "character/personality",
+      "description": ""
+    },
+    "chores": {
+      "name": "chores",
+      "description": ""
+    },
+    "collocations": {
+      "name": "collocations",
+      "description": ""
+    },
+    "concession": {
+      "name": "concession",
+      "description": ""
+    },
+    "conditionals": {
+      "name": "conditionals",
+      "description": ""
+    },
+    "conjunctions": {
+      "name": "conjunctions",
+      "description": ""
+    },
+    "cooking and eating": {
+      "name": "cooking and eating",
+      "description": ""
+    },
+    "correlatives": {
+      "name": "correlatives",
+      "description": ""
+    },
+    "crime": {
+      "name": "crime",
+      "description": ""
+    },
+    "culture/society": {
+      "name": "culture/society",
+      "description": ""
+    },
+    "disasters": {
+      "name": "disasters",
+      "description": ""
+    },
+    "economy/business": {
+      "name": "economy/business",
+      "description": ""
+    },
+    "education": {
+      "name": "education",
+      "description": ""
+    },
+    "emphasis": {
+      "name": "emphasis",
+      "description": ""
+    },
+    "entertainment": {
+      "name": "entertainment",
+      "description": ""
+    },
+    "family": {
+      "name": "family",
+      "description": ""
+    },
+    "fashion": {
+      "name": "fashion",
+      "description": ""
+    },
+    "feelings/emotions": {
+      "name": "feelings/emotions",
+      "description": ""
+    },
+    "gerund and infinitive": {
+      "name": "gerund and infinitive",
+      "description": ""
+    },
+    "gestures": {
+      "name": "gestures",
+      "description": ""
+    },
+    "group noun phrases": {
+      "name": "group noun phrases",
+      "description": ""
+    },
+    "health": {
+      "name": "health",
+      "description": ""
+    },
+    "history": {
+      "name": "history",
+      "description": ""
+    },
+    "human body": {
+      "name": "human body",
+      "description": ""
+    },
+    "human interactions": {
+      "name": "human interactions",
+      "description": ""
+    },
+    "human mind": {
+      "name": "human mind",
+      "description": ""
+    },
+    "idioms": {
+      "name": "idioms",
+      "description": ""
+    },
+    "image": {
+      "name": "image",
+      "description": ""
+    },
+    "indefinite pronouns": {
+      "name": "indefinite pronouns",
+      "description": ""
+    },
+    "industry": {
+      "name": "industry",
+      "description": ""
+    },
+    "inversion": {
+      "name": "inversion",
+      "description": ""
+    },
+    "issues": {
+      "name": "issues",
+      "description": ""
+    },
+    "language functions": {
+      "name": "language functions",
+      "description": ""
+    },
+    "linking verbs": {
+      "name": "linking verbs",
+      "description": ""
+    },
+    "materials": {
+      "name": "materials",
+      "description": ""
+    },
+    "money": {
+      "name": "money",
+      "description": ""
+    },
+    "movement/gestures": {
+      "name": "movement/gestures",
+      "description": ""
+    },
+    "music": {
+      "name": "music",
+      "description": ""
+    },
+    "passive voice": {
+      "name": "passive voice",
+      "description": ""
+    },
+    "past habit": {
+      "name": "past habit",
+      "description": ""
+    },
+    "phrasal verbs": {
+      "name": "phrasal verbs",
+      "description": ""
+    },
+    "politics": {
+      "name": "politics",
+      "description": ""
+    },
+    "possessives": {
+      "name": "possessives",
+      "description": ""
+    },
+    "prepositional phrases": {
+      "name": "prepositional phrases",
+      "description": ""
+    },
+    "prepositions": {
+      "name": "prepositions",
+      "description": ""
+    },
+    "pronouns": {
+      "name": "pronouns",
+      "description": ""
+    },
+    "reflexive pronouns": {
+      "name": "reflexive pronouns",
+      "description": ""
+    },
+    "relationships": {
+      "name": "relationships",
+      "description": ""
+    },
+    "religion": {
+      "name": "religion",
+      "description": ""
+    },
+    "sayings/proverbs": {
+      "name": "sayings/proverbs",
+      "description": ""
+    },
+    "science/technology": {
+      "name": "science/technology",
+      "description": ""
+    },
+    "senses": {
+      "name": "senses",
+      "description": ""
+    },
+    "shopping": {
+      "name": "shopping",
+      "description": ""
+    },
+    "similes": {
+      "name": "similes",
+      "description": ""
+    },
+    "social issues": {
+      "name": "social issues",
+      "description": ""
+    },
+    "stative verbs": {
+      "name": "stative verbs",
+      "description": ""
+    },
+    "subjunctive": {
+      "name": "subjunctive",
+      "description": ""
+    },
+    "subordinate clauses": {
+      "name": "subordinate clauses",
+      "description": ""
+    },
+    "success": {
+      "name": "success",
+      "description": ""
+    },
+    "tag questions": {
+      "name": "tag questions",
+      "description": ""
+    },
+    "tenses": {
+      "name": "tenses",
+      "description": ""
+    },
+    "the army and the navy": {
+      "name": "the army and the navy",
+      "description": ""
+    },
+    "the media": {
+      "name": "the media",
+      "description": ""
+    },
+    "time clauses": {
+      "name": "time clauses",
+      "description": ""
+    },
+    "tourism": {
+      "name": "tourism",
+      "description": ""
+    },
+    "transactions": {
+      "name": "transactions",
+      "description": ""
+    },
+    "transitive/intransitive verbs": {
+      "name": "transitive/intransitive verbs",
+      "description": ""
+    },
+    "transport/traffic": {
+      "name": "transport/traffic",
+      "description": ""
+    },
+    "travel/holidays": {
+      "name": "travel/holidays",
+      "description": ""
+    },
+    "uncountable nouns": {
+      "name": "uncountable nouns",
+      "description": ""
+    },
+    "work": {
+      "name": "work",
+      "description": ""
+    },
+    "noun phrases": {
+      "name": "noun phrases",
+      "description": ""
+    },
+    "skills/abilities/talent": {
+      "name": "skills/abilities/talent",
+      "description": ""
+    },
+    "stages of life": {
+      "name": "stages of life",
+      "description": ""
+    },
+    "change/development/evolution": {
+      "name": "change/development/evolution",
+      "description": ""
+    },
+    "purpose": {
+      "name": "purpose",
+      "description": ""
+    },
+    "deception": {
+      "name": "deception",
+      "description": ""
+    },
+    "time": {
+      "name": "time",
+      "description": ""
+    },
+    "noises": {
+      "name": "noises",
+      "description": ""
+    },
+    "plural-only nouns": {
+      "name": "plural-only nouns",
+      "description": ""
+    },
+    "attitude/reaction": {
+      "name": "attitude/reaction",
+      "description": ""
+    },
+    "comparisons/comparative structures": {
+      "name": "comparisons/comparative structures",
+      "description": ""
+    },
+    "leisure/hobbies": {
+      "name": "leisure/hobbies",
+      "description": ""
+    },
+    "social status": {
+      "name": "social status",
+      "description": ""
+    },
+    "celebrations/parties": {
+      "name": "celebrations/parties",
+      "description": ""
+    },
+    "cause/effect": {
+      "name": "cause/effect",
+      "description": ""
+    },
+    "physical characteristics": {
+      "name": "physical characteristics",
+      "description": ""
+    },
+    "indirect speech": {
+      "name": "indirect speech",
+      "description": ""
+    },
+    "chance/fate/hazard": {
+      "name": "chance/fate/hazard",
+      "description": ""
+    },
+    "relative pronouns/adverbs/clauses": {
+      "name": "relative pronouns/adverbs/clauses",
+      "description": ""
+    },
+    "nouns": {
+      "name": "nouns",
+      "description": ""
+    },
+    "appearance": {
+      "name": "appearance",
+      "description": ""
+    },
+    "problem-solving": {
+      "name": "problem-solving",
+      "description": ""
+    },
+    "infrastructure": {
+      "name": "infrastructure",
+      "description": ""
+    },
+    "amount/quantity": {
+      "name": "amount/quantity",
+      "description": ""
+    },
+    "perception": {
+      "name": "perception",
+      "description": ""
+    },
+    "environment/conservation/recycling": {
+      "name": "environment/conservation/recycling",
+      "description": ""
+    },
+    "accomodation/homes": {
+      "name": "accomodation/homes",
+      "description": ""
+    },
+    "pollution": {
+      "name": "pollution",
+      "description": ""
+    },
+    "law/the police": {
+      "name": "law/the police",
+      "description": ""
+    },
+    "art": {
+      "name": "art",
+      "description": ""
+    },
+    "determiners/quantifiers": {
+      "name": "determiners/quantifiers",
+      "description": ""
+    },
+    "events/exhibitions": {
+      "name": "events/exhibitions",
+      "description": ""
+    },
+    "architecture/buildings": {
+      "name": "architecture/buildings",
+      "description": ""
+    },
+    "participle": {
+      "name": "participle",
+      "description": ""
+    },
+    "nature/wildlife/animals/pets": {
+      "name": "nature/wildlife/animals/pets",
+      "description": ""
+    },
+    "preferences": {
+      "name": "preferences",
+      "description": ""
+    },
+    "holidays/festivals": {
+      "name": "holidays/festivals",
+      "description": ""
+    },
+    "prediction/speculation/inference/deduction": {
+      "name": "prediction/speculation/inference/deduction",
+      "description": ""
+    },
+    "war and conflict/violence": {
+      "name": "war and conflict/violence",
+      "description": ""
+    },
+    "contrast": {
+      "name": "contrast",
+      "description": ""
+    },
+    "urban/rural area": {
+      "name": "urban/rural area",
+      "description": ""
+    },
+    "medicine/psychology": {
+      "name": "medicine/psychology",
+      "description": ""
+    },
+    "food and drink/diet": {
+      "name": "food and drink/diet",
+      "description": ""
+    },
+    "sports/exercise": {
+      "name": "sports/exercise",
+      "description": ""
+    },
+    "communication": {
+      "name": "communication",
+      "description": ""
+    },
+    "suggestions": {
+      "name": "suggestions",
+      "description": ""
+    },
+    "modal verbs/phrases": {
+      "name": "modal verbs/phrases",
+      "description": ""
+    },
+    "clothes": {
+      "name": "clothes",
+      "description": ""
+    },
+    "geography/landscape/scenery": {
+      "name": "geography/landscape/scenery",
+      "description": ""
+    },
+    "test": {
+      "name": "test",
+      "description": ""
+    }
+  },
+  "chapters": {
+    "grammar": {
+      "id": "grammar",
+      "name": "Grammar",
+      "description": "",
+      "tags": [
+        "adverbial phrases",
+        "agreement",
+        "articles",
+        "causatives",
+        "conditionals",
+        "conjunctions",
+        "correlatives",
+        "gerund and infinitive",
+        "group noun phrases",
+        "indefinite pronouns",
+        "inversion",
+        "linking verbs",
+        "passive voice",
+        "past habit",
+        "possessives",
+        "prepositions",
+        "pronouns",
+        "reflexive pronouns",
+        "stative verbs",
+        "subjunctive",
+        "subordinate clauses",
+        "tag questions",
+        "tenses",
+        "time clauses",
+        "transitive/intransitive verbs",
+        "uncountable nouns",
+        "noun phrases",
+        "plural-only nouns",
+        "comparisons/comparative structures",
+        "relative pronouns/adverbs/clauses",
+        "nouns",
+        "determiners/quantifiers",
+        "participle",
+        "modal verbs/phrases",
+        "Reformatted with AI"
+      ]
+    },
+    "the-physical-world": {
+      "id": "the-physical-world",
+      "name": "The Physical World",
+      "description": "Earth&Geology\r\nAtmosphere/Weather\r\nHydrosphere\r\nSpace/Astronomy\r\nMaterials/Matter\r\nPhysical characteristics",
+      "tags": [
+        "disasters",
+        "geography/landscape/scenery",
+        "materials",
+        "physical characteristics"
+      ]
+    },
+    "living-things": {
+      "id": "living-things",
+      "name": "Living Things",
+      "description": "Life forms (plants, animals, insects, etc)\r\nNature/Habitats&Ecology/Environment\r\nLife processes\r\nAnimal behaviour\r\nConservation/Biodiversity/Recycling",
+      "tags": [
+        "nature/wildlife/animals/pets",
+        "environment/conservation/recycling",
+        "pollution",
+        "Reformatted with AI",
+        "adverbial phrases",
+        "agreement"
+      ]
+    },
+    "the-bodyandhealth": {
+      "id": "the-bodyandhealth",
+      "name": "The Body&Health",
+      "description": "Anatomy&Physiology\r\nThe Senses/Perception\r\nIllness/Disease\r\nTreatment/Care\r\nAppearance\r\nFitness&Nutrition/Exercise",
+      "tags": [
+        "health",
+        "human body",
+        "noises",
+        "perception",
+        "senses",
+        "appearance",
+        "stages of life"
+      ]
+    },
+    "foodanddrink": {
+      "id": "foodanddrink",
+      "name": "Food&Drink",
+      "description": "Ingredients&Raw foods\r\nCooking methods\r\nDishes&Cuisines\r\nDining context/Eating (meals, restaurants, etc)\r\nContainers&Measures",
+      "tags": [
+        "cooking and eating",
+        "food and drink/diet"
+      ]
+    },
+    "homeanddaily-life": {
+      "id": "homeanddaily-life",
+      "name": "Home&Daily Life",
+      "description": "Dwelling Types&Home/Rooms\r\nFurniture&Fixtures&Personal Items\r\nHousehold tasks&Chores\r\nHobbies/Leisure at home\r\nShopping\r\nFashion",
+      "tags": [
+        "accomodation/homes",
+        "chores",
+        "clothes",
+        "fashion",
+        "shopping"
+      ]
+    },
+    "place/spaceandmovement": {
+      "id": "place/spaceandmovement",
+      "name": "Place/Space&Movement",
+      "description": "Spatial relations (position&direction, distance, geometry/shape)\r\nTransport Modes/Traffic\r\nInfrastructure\r\nTravel&Tourism/Holidays\r\nNavigation/Mapping\r\nMotion/Mechanics\r\nHuman settlements&Land use",
+      "tags": [
+        "Reformatted with AI"
+      ]
+    },
+    "time/quantityandmeasurement": {
+      "id": "time/quantityandmeasurement",
+      "name": "Time, Quantity&Measurement",
+      "description": "Calendar, clock time/Frequency/Schedules\r\nNumbers&Arithmetic\r\nMagnitude&Degree\r\nData&Statistics",
+      "tags": [
+        "amount/quantity",
+        "time",
+        "Reformatted with AI"
+      ]
+    },
+    "workandprofessions": {
+      "id": "workandprofessions",
+      "name": "Work&Professions",
+      "description": "Employment basics\r\nOffice work\r\nManual trades&Crafts\r\nServices\r\nCareer development",
+      "tags": [
+        "work"
+      ]
+    },
+    "economyandbusiness": {
+      "id": "economyandbusiness",
+      "name": "Economy&Business",
+      "description": "Money/Banking&Wealth\r\nIndustry&Services\r\nCommerce/Sales&Advertising\r\nTourism\r\nFinance&Investment\r\nMacroeconomics\r\nEntrepreneurship",
+      "tags": [
+        "economy/business",
+        "events/exhibitions",
+        "industry",
+        "money",
+        "tourism",
+        "transactions",
+        "Reformatted with AI"
+      ]
+    },
+    "science/researchandtechnology": {
+      "id": "science/researchandtechnology",
+      "name": "Science/Research&Technology",
+      "description": "",
+      "tags": []
+    },
+    "thoughtandlearning/education": {
+      "id": "thoughtandlearning/education",
+      "name": "Thought&Learning/Education",
+      "description": "",
+      "tags": [
+        "Reformatted with AI"
+      ]
+    },
+    "languageandcommunication": {
+      "id": "languageandcommunication",
+      "name": "Language&Communication&Media",
+      "description": "Linguistics\r\nSpeech&Conversation\r\nWriting&Texts\r\nMedia&Publishing\r\nTelecommunications&Networking",
+      "tags": [
+        "communication",
+        "the media"
+      ]
+    },
+    "emotionsandattitudes": {
+      "id": "emotionsandattitudes",
+      "name": "Emotions&Attitudes",
+      "description": "Basic emotions\r\nComplex feelings\r\nAttitudes&Judgements\r\nMood&Temperament\r\nCharacter&Personality\r\nCoping with stress/pressure",
+      "tags": [
+        "attitude/reaction",
+        "preferences",
+        "character/personality",
+        "feelings/emotions"
+      ]
+    },
+    "behaviourandaction/interaction": {
+      "id": "behaviourandaction/interaction",
+      "name": "Behaviour&Action/Interaction",
+      "description": "",
+      "tags": []
+    },
+    "peopleandrelationships": {
+      "id": "peopleandrelationships",
+      "name": "People&Relationships",
+      "description": "Family\r\nFrienship&Social circles\r\nRomance&Sexuality\r\nDemography&Identity\r\nSocial status/Image/Achievements",
+      "tags": [
+        "family",
+        "relationships",
+        "social status",
+        "success",
+        "image"
+      ]
+    },
+    "society,-lawandgovernment": {
+      "id": "society,-lawandgovernment",
+      "name": "Society, Law&Government",
+      "description": "Political systems\r\nPublic administration\r\nLaw&Justice\r\nInternational relations\r\nIdeologies&Movements\r\nDefense&Military",
+      "tags": [
+        "crime",
+        "law/the police",
+        "politics",
+        "social issues",
+        "war and conflict/violence",
+        "the army and the navy"
+      ]
+    },
+    "culture/artsandentertainment": {
+      "id": "culture/artsandentertainment",
+      "name": "Culture/Arts&Entertainment",
+      "description": "",
+      "tags": []
+    },
+    "recreationandpastimes": {
+      "id": "recreationandpastimes",
+      "name": "Recreation&Pastimes",
+      "description": "Sport&Physical recreation\r\nGames&Play\r\nCreative hobbies&DIY\r\nSocial&Community leisure",
+      "tags": [
+        "leisure/hobbies",
+        "sports/exercise"
+      ]
+    },
+    "beliefandphilosophy": {
+      "id": "beliefandphilosophy",
+      "name": "Belief&Philosophy",
+      "description": "World religions\r\nSpiritual practices\r\nEthics&Morality\r\nMetaphysics&Epistemology\r\nMyth&Folklore",
+      "tags": [
+        "holidays/festivals",
+        "chance/fate/hazard",
+        "deception",
+        "religion",
+        "sayings/proverbs"
+      ]
+    },
+    "architectureandconstruction": {
+      "id": "architectureandconstruction",
+      "name": "Architecture&Construction",
+      "description": "Architectural history&Styles\r\nBuilding types\r\nMaterials&Structural systems\r\nInfrastructure&Civil works\r\nUrban planning&Design",
+      "tags": [
+        "architecture/buildings",
+        "infrastructure"
+      ]
+    },
+    "culture\\artsandentertainment": {
+      "id": "culture\\artsandentertainment",
+      "name": "Culture\\Arts&Entertainment",
+      "description": "",
+      "tags": []
+    },
+    "culture---artsandentertainment": {
+      "id": "culture---artsandentertainment",
+      "name": "Culture, arts&Entertainment",
+      "description": "",
+      "tags": [
+        "art",
+        "music",
+        "celebrations/parties",
+        "culture/society",
+        "entertainment",
+        "events/exhibitions",
+        "holidays/festivals"
+      ]
+    },
+    "place,-spaceandmovement": {
+      "id": "place,-spaceandmovement",
+      "name": "Place, space&Movement",
+      "description": "Spatial relations (position&direction, distance, geometry/shape) \r\nTransport modes/Traffic \r\nInfrastructure \r\nTravel&Tourism/Holidays \r\nNavigation/Mapping \r\nMotion/Mechanics \r\nHuman settlements&Land use",
+      "tags": [
+        "infrastructure",
+        "transport/traffic",
+        "travel/holidays"
+      ]
+    },
+    "thoughtandlearningandeducation": {
+      "id": "thoughtandlearningandeducation",
+      "name": "Thought&Learning&Education",
+      "description": "Cognition&Memory&Human mind\r\nEducation&Training&Research\r\nCreativity&Innovation\r\nSkills, Abilities&Talent",
+      "tags": [
+        "education",
+        "history",
+        "human mind",
+        "prediction/speculation/inference/deduction",
+        "problem-solving",
+        "skills/abilities/talent"
+      ]
+    },
+    "time,-quantityandmeasurement": {
+      "id": "time,-quantityandmeasurement",
+      "name": "Time, Quantity&Measurement",
+      "description": "Calendar, clock time/Frequency/Schedules\r\nNumbers&Arithmetic\r\nMagnitude&Degree\r\nData&Statistics",
+      "tags": [
+        "amount/quantity",
+        "time"
+      ]
+    },
+    "science,-researchandtechnology": {
+      "id": "science,-researchandtechnology",
+      "name": "Science, research&Technology",
+      "description": "Physical sciences\r\nLife sciences/Medicine/Psychology\r\nComputing&Digital tech\r\nEngineering fields\r\nApplied&Emerging tech&Artificial intelligence",
+      "tags": [
+        "science/technology",
+        "medicine/psychology"
+      ]
+    },
+    "behaviourandactionandhuman-interaction": {
+      "id": "behaviourandactionandhuman-interaction",
+      "name": "Behaviour&Action&Human interaction",
+      "description": "Physical actions\r\nSocial acts\r\nConflict/Hostility&Combat\r\nCooperation/Altruism\r\nHabits&Routines",
+      "tags": [
+        "gestures",
+        "movement/gestures",
+        "human interactions"
+      ]
+    }
+  }
+}

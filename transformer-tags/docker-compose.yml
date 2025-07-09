@@ -8,7 +8,7 @@ services:
       - .:/workspace
     command: >
       bash -c "
-        python predict.py
+        python gemma.py
       "
     deploy:
       resources:

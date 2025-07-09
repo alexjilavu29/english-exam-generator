@@ -1,11 +1,20 @@
+from transformers import RobertaForSequenceClassification, RobertaTokenizerFast
+from transformers import RobertaTokenizerFast
+import torch.nn as nn
+from transformers import Trainer
 import pickle
 from sklearn.preprocessing import MultiLabelBinarizer
 from datasets import Dataset
 from transformers import BertTokenizerFast, BertForSequenceClassification, Trainer, TrainingArguments
+import transformers
 import torch
+from torch.nn import BCEWithLogitsLoss
 import numpy as np
+from sklearn.utils.class_weight import compute_class_weight
 
 from data import questions_with_tags
+
+model = "roberta-base"
 
 texts = [item["body"] for item in questions_with_tags]
 tag_lists = [item["tags"] for item in questions_with_tags]
@@ -15,12 +24,37 @@ all_tags = sorted(list({tag for tags in tag_lists for tag in tags}))
 mlb = MultiLabelBinarizer()
 tag_matrix = mlb.fit_transform(tag_lists)
 
+label_counts = np.sum(tag_matrix, axis=0)
+weights = 1.0 / (label_counts + 1e-6)
+weights = weights / weights.sum()  # normalizare
+
+
+class WeightedTrainer(Trainer):
+    def __init__(self, class_weights, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.class_weights = class_weights.to(self.model.device)
+        self.loss_fn = nn.BCEWithLogitsLoss(pos_weight=self.class_weights)
+
+    def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
+        labels = inputs.get("labels")
+        outputs = model(**inputs)
+        logits = outputs.logits
+
+        loss = self.loss_fn(logits, labels)
+
+        return (loss, outputs) if return_outputs else loss
+
+
+class_weights = torch.tensor(weights, dtype=torch.float32)
+
 dataset = Dataset.from_dict({
     "text": texts,
     "labels": tag_matrix.astype(np.float32)
 })
 
-tokenizer = BertTokenizerFast.from_pretrained("bert-base-uncased")
+# tokenizer = BertTokenizerFast.from_pretrained(model)
+tokenizer = RobertaTokenizerFast.from_pretrained(model)
+data_collator = transformers.DataCollatorWithPadding(tokenizer)
 
 
 def tokenize(batch):
@@ -45,11 +79,13 @@ split = dataset.train_test_split(test_size=0.2)
 train_dataset = split["train"]
 eval_dataset = split["test"]
 
-model = BertForSequenceClassification.from_pretrained(
-    "bert-base-uncased",
+model = RobertaForSequenceClassification.from_pretrained(
+    model,
     num_labels=len(mlb.classes_),
     problem_type="multi_label_classification"
 )
+
+model.config.loss = BCEWithLogitsLoss()
 
 
 def compute_metrics(pred):
@@ -59,12 +95,16 @@ def compute_metrics(pred):
     y_pred = np.zeros(probs.shape)
     y_pred[np.where(probs >= 0.5)] = 1  # threshold de 0.5
 
-    from sklearn.metrics import f1_score, precision_score, recall_score
+    from sklearn.metrics import classification_report
+
+    report = classification_report(
+        labels, y_pred, output_dict=True, zero_division=0)
 
     return {
-        "f1_micro": f1_score(labels, y_pred, average="micro"),
-        "precision_micro": precision_score(labels, y_pred, average="micro"),
-        "recall_micro": recall_score(labels, y_pred, average="micro"),
+        "f1_micro": report["micro avg"]["f1-score"],
+        "f1_macro": report["macro avg"]["f1-score"],
+        "precision_micro": report["micro avg"]["precision"],
+        "recall_micro": report["micro avg"]["recall"],
     }
 
 
@@ -77,17 +117,29 @@ training_args = TrainingArguments(
     per_device_eval_batch_size=16,
     num_train_epochs=4,
     weight_decay=0.01,
+    warmup_steps=500,
+    lr_scheduler_type="linear",
     load_best_model_at_end=True,
     metric_for_best_model="f1_micro",
 )
 
-trainer = Trainer(
+# trainer = Trainer(
+#     model=model,
+#     args=training_args,
+#     train_dataset=train_dataset,
+#     eval_dataset=eval_dataset,
+#     tokenizer=tokenizer,
+#     data_collator=data_collator,
+#     compute_metrics=compute_metrics,
+# )
+trainer = WeightedTrainer(
     model=model,
     args=training_args,
     train_dataset=train_dataset,
     eval_dataset=eval_dataset,
     tokenizer=tokenizer,
     compute_metrics=compute_metrics,
+    class_weights=class_weights,
 )
 
 trainer.train()

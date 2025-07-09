@@ -57,52 +57,237 @@
         .action-buttons {
             margin-top: 0.5rem;
         }
-        .source-tag-item {
-            padding: 0.4rem 0.5rem;
-            margin: 0.1rem 0;
+        /* MERGE TAG SYSTEM STYLES */
+        .merge-tag-item {
+            padding: 0.75rem 1rem;
+            margin: 0.25rem 0;
+            border-radius: 0.5rem;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .merge-tag-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(23, 162, 184, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+        
+        .merge-tag-item:hover {
+            border-color: #b6d7ff;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+            transform: translateY(-1px);
+        }
+        
+        .merge-tag-item:hover::before {
+            opacity: 0.5;
+        }
+        
+        .merge-tag-item[data-selected="true"] {
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb) !important;
+            border-color: #17a2b8 !important;
+            box-shadow: 0 6px 20px rgba(23, 162, 184, 0.3), 
+                        0 0 0 3px rgba(23, 162, 184, 0.1) !important;
+            transform: translateY(-2px);
+        }
+        
+        .merge-tag-item[data-selected="true"]::before {
+            opacity: 1;
+            background: linear-gradient(135deg, rgba(23, 162, 184, 0.2), rgba(13, 110, 253, 0.1));
+        }
+        
+        .merge-tag-item[data-selected="true"]::after {
+            content: '✓';
+            position: absolute;
+            top: 0.75rem;
+            right: 1rem;
+            color: #17a2b8;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(23, 162, 184, 0.3);
+            z-index: 2;
+            animation: checkmarkAppear 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .merge-tag-item[data-selected="true"] .merge-tag-content {
+            font-weight: 600;
+            color: #0c5460;
+            z-index: 1;
+            position: relative;
+            padding-right: 2.5rem;
+        }
+        
+        .merge-tag-item[data-selected="true"] .tag-count {
+            background: rgba(23, 162, 184, 0.2) !important;
+            color: #0c5460 !important;
+            font-weight: 500 !important;
+        }
+        
+        .merge-tag-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 1;
+            position: relative;
+        }
+        
+        .tag-name {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .tag-count {
+            font-size: 0.85rem;
+            color: #6c757d;
+            background: rgba(108, 117, 125, 0.1);
+            padding: 0.1rem 0.4rem;
             border-radius: 0.25rem;
-            border: 1px solid transparent;
             transition: all 0.2s ease;
         }
-        .source-tag-item:hover {
+        
+        .merge-tag-item:active {
+            transform: translateY(0px) scale(0.98);
+            transition: transform 0.1s ease;
+        }
+        
+        @keyframes checkboxPulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(23, 162, 184, 0.4);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 4px rgba(23, 162, 184, 0.3);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 2px rgba(23, 162, 184, 0.2);
+            }
+        }
+        
+        @keyframes checkmarkAppear {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2) rotate(180deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1) rotate(360deg);
+                opacity: 1;
+            }
+        }
+        
+        /* CHAPTER TAG SYSTEM STYLES */
+        .chapter-available-tag-item {
+            padding: 0.5rem 0.75rem;
+            margin: 0.1rem 0;
+            border-radius: 0.375rem;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            background-color: #ffffff;
+        }
+        
+        .chapter-available-tag-item:hover {
             background-color: #f8f9fa;
             border-color: #dee2e6;
         }
-        .source-tag-item.selected {
-            background-color: #d1ecf1 !important;
-            border-color: #bee5eb !important;
-            box-shadow: 0 0 0 0.1rem rgba(23, 162, 184, 0.25);
-        }
-        .source-tag-item.selected label {
-            font-weight: 500;
-            color: #0c5460;
-        }
-        .source-tag-item.selected .form-check-input:checked {
-            background-color: #17a2b8;
-            border-color: #17a2b8;
-        }
-        #sourceTagsContainer {
+        
+        .chapter-available-tag-item .add-tag-btn {
             transition: all 0.2s ease;
         }
-        .form-check-label {
-            cursor: pointer;
-            width: 100%;
-            margin-bottom: 0;
-            display: flex;
-            justify-content: between;
-            align-items: center;
+        
+        .chapter-available-tag-item .add-tag-btn:hover {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            transform: scale(1.05);
         }
-        .form-check-input {
-            display: none; /* Hide the actual checkbox */
+        #sourceTagsContainer {
+            transition: all 0.3s ease;
+            background: linear-gradient(145deg, #f8f9fa, #ffffff);
+            border: 2px solid #e9ecef !important;
+            border-radius: 0.75rem !important;
+            padding: 1rem !important;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
         }
-        .form-check-input:checked {
-            background-color: #17a2b8;
-            border-color: #17a2b8;
+        
+        #sourceTagsContainer::-webkit-scrollbar {
+            width: 8px;
         }
-        .form-check-input:focus {
-            border-color: #17a2b8;
-            box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+        
+        #sourceTagsContainer::-webkit-scrollbar-track {
+            background: rgba(233, 236, 239, 0.5);
+            border-radius: 4px;
         }
+        
+        #sourceTagsContainer::-webkit-scrollbar-thumb {
+            background: linear-gradient(145deg, #17a2b8, #0d6efd);
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+        
+        #sourceTagsContainer::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(145deg, #0d6efd, #17a2b8);
+        }
+        
+        .tag-loading {
+            opacity: 0;
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+
+        
+
+        
+        .form-text {
+            background: rgba(13, 110, 253, 0.05);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(13, 110, 253, 0.1);
+            margin-top: 0.5rem;
+        }
+        
+        #selectedSourceCount {
+            font-weight: 600;
+            color: #17a2b8;
+        }
+
+
     </style>
 </head>
 <body>
@@ -224,11 +409,11 @@
                                                 <div class="mb-3">
                                                     <label class="form-label">Add Tags</label>
                                                     <div class="mb-2">
-                                                        <input type="text" class="form-control form-control-sm add-tag-search" placeholder="Search available tags..." autocomplete="off">
+                                                        <input type="text" class="form-control form-control-sm chapter-tag-search" placeholder="Search available tags..." autocomplete="off">
                                                     </div>
-                                                    <div class="border rounded p-2 bg-light available-tags-container" style="max-height: 200px; overflow-y: auto;">
+                                                    <div class="border rounded p-2 bg-light chapter-available-tags-container" style="max-height: 200px; overflow-y: auto;">
                                                         {% for tag_name in tag_data.tags.keys() %}
-                                                        <div class="d-flex justify-content-between align-items-center py-1 px-2 border-bottom available-tag-item" data-tag-name="{{ tag_name.lower() }}">
+                                                        <div class="d-flex justify-content-between align-items-center py-1 px-2 border-bottom chapter-available-tag-item" data-tag-name="{{ tag_name.lower() }}">
                                                             <span>
                                                                 <span class="fw-normal">{{ tag_name }}</span>
                                                                 <small class="text-muted">({{ tag_counts.get(tag_name, 0) }} questions)</small>
@@ -322,28 +507,21 @@
                             <form action="/tag/merge" method="post" id="mergeForm">
                                 <div class="mb-2">
                                     <label class="form-label small">Source Tags (to be merged)</label>
-                                    <div class="mb-2">
-                                        <input type="text" class="form-control form-control-sm" id="sourceTagsSearch" placeholder="Search source tags..." autocomplete="off">
-                                    </div>
                                     <div class="border rounded p-2 bg-light" style="max-height: 200px; overflow-y: auto;" id="sourceTagsContainer">
                                         {% for tag_name in tag_data.tags.keys() %}
-                                        <div class="form-check source-tag-item" data-tag-name="{{ tag_name.lower() }}">
-                                            <input class="form-check-input" type="checkbox" name="source_tags" value="{{ tag_name }}" id="sourceTag_{{ loop.index0 }}">
-                                            <label class="form-check-label" for="sourceTag_{{ loop.index0 }}">
-                                                <span class="fw-normal">{{ tag_name }}</span>
-                                                <small class="text-muted">({{ tag_counts.get(tag_name, 0) }} questions)</small>
-                                            </label>
+                                        <div class="merge-tag-item" data-tag-name="{{ tag_name.lower() }}" data-tag-value="{{ tag_name }}" data-selected="false">
+                                            <div class="merge-tag-content">
+                                                <span class="tag-name">{{ tag_name }}</span>
+                                                <span class="tag-count">({{ tag_counts.get(tag_name, 0) }} questions)</span>
+                                            </div>
+                                            <div class="merge-tag-checkbox">
+                                                <input type="hidden" name="source_tags" value="{{ tag_name }}" disabled>
+                                            </div>
                                         </div>
                                         {% endfor %}
                                     </div>
-                                    <small class="form-text text-muted d-flex justify-content-between align-items-center">
-                                        <span>
-                                            <span id="selectedSourceCount">0</span> source tag(s) selected
-                                        </span>
-                                        <span>
-                                            <button type="button" class="btn btn-link btn-sm p-0 me-2" id="selectAllVisible">Select All Visible</button>
-                                            <button type="button" class="btn btn-link btn-sm p-0" id="clearSourceSelection">Clear All</button>
-                                        </span>
+                                    <small class="form-text text-muted">
+                                        <span id="selectedSourceCount">0</span> source tag(s) selected
                                     </small>
                                 </div>
                                 <div class="mb-2">
@@ -422,11 +600,11 @@
                         <div class="mb-3">
                             <label class="form-label">Add Tags</label>
                             <div class="mb-2">
-                                <input type="text" class="form-control form-control-sm add-tag-search" placeholder="Search available tags..." autocomplete="off">
+                                <input type="text" class="form-control form-control-sm chapter-tag-search" placeholder="Search available tags..." autocomplete="off">
                             </div>
-                            <div class="border rounded p-2 bg-light available-tags-container" style="max-height: 200px; overflow-y: auto;">
+                            <div class="border rounded p-2 bg-light chapter-available-tags-container" style="max-height: 200px; overflow-y: auto;">
                                 {% for tag_name in tag_data.tags.keys() %}
-                                <div class="d-flex justify-content-between align-items-center py-1 px-2 border-bottom available-tag-item" data-tag-name="{{ tag_name.lower() }}">
+                                <div class="d-flex justify-content-between align-items-center py-1 px-2 border-bottom chapter-available-tag-item" data-tag-name="{{ tag_name.lower() }}">
                                     <span>
                                         <span class="fw-normal">{{ tag_name }}</span>
                                         <small class="text-muted">({{ tag_counts.get(tag_name, 0) }} questions)</small>
@@ -452,120 +630,30 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Tag search functionality
-        document.getElementById('tagSearch').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const tagItems = document.querySelectorAll('.searchable-tag');
-            
-            tagItems.forEach(function(item) {
-                const tagName = item.getAttribute('data-tag-name');
-                if (tagName.includes(searchTerm)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        });
 
-        // Source tags search functionality
-        document.getElementById('sourceTagsSearch').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const tagItems = document.querySelectorAll('.source-tag-item');
-            let visibleCount = 0;
-            
-            tagItems.forEach(function(item) {
-                const tagName = item.getAttribute('data-tag-name');
-                const label = item.querySelector('label').textContent.toLowerCase();
-                
-                if (searchTerm === '' || tagName.includes(searchTerm) || label.includes(searchTerm)) {
-                    item.style.display = 'block';
-                    visibleCount++;
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-            
-            // Maintain visual selection state after search
-            updateSourceTagCounter();
-        });
 
-        // Source tags selection counter and visual state management
-        function updateSourceTagCounter() {
-            const checkedBoxes = document.querySelectorAll('input[name="source_tags"]:checked');
-            const counter = document.getElementById('selectedSourceCount');
-            counter.textContent = checkedBoxes.length;
-            
-            // Update visual state for all tag items
-            document.querySelectorAll('.source-tag-item').forEach(function(item) {
-                const checkbox = item.querySelector('input[name="source_tags"]');
-                if (checkbox.checked) {
-                    item.classList.add('selected');
-                } else {
-                    item.classList.remove('selected');
-                }
-            });
-        }
 
-        // Add event listeners to all source tag checkboxes
-        document.querySelectorAll('input[name="source_tags"]').forEach(function(checkbox) {
-            checkbox.addEventListener('change', function() {
-                updateSourceTagCounter();
-                // Prevent the checkbox from losing focus/state
-                this.blur();
-            });
-        });
 
-        // Clear all source tags selection
-        document.getElementById('clearSourceSelection').addEventListener('click', function() {
-            document.querySelectorAll('input[name="source_tags"]').forEach(function(checkbox) {
-                checkbox.checked = false;
-            });
-            updateSourceTagCounter();
-        });
 
-        // Select all visible tags
-        document.getElementById('selectAllVisible').addEventListener('click', function() {
-            const visibleCheckboxes = document.querySelectorAll('.source-tag-item:not([style*="display: none"]) input[name="source_tags"]');
-            visibleCheckboxes.forEach(function(checkbox) {
-                checkbox.checked = true;
-            });
-            updateSourceTagCounter();
-        });
 
-        // Keyboard shortcuts for source tags search
-        document.getElementById('sourceTagsSearch').addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                this.value = '';
-                this.dispatchEvent(new Event('input'));
-            }
-        });
 
-        // Select all visible tags functionality (Ctrl+A in search box)
-        document.getElementById('sourceTagsSearch').addEventListener('keydown', function(e) {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
-                e.preventDefault();
-                const visibleCheckboxes = document.querySelectorAll('.source-tag-item:not([style*="display: none"]) input[name="source_tags"]');
-                const allChecked = Array.from(visibleCheckboxes).every(cb => cb.checked);
-                
-                visibleCheckboxes.forEach(function(checkbox) {
-                    checkbox.checked = !allChecked;
-                });
-                updateSourceTagCounter();
-            }
-        });
 
-        // Enhanced merge functionality with confirmation and loading states
+
+
+        // Enhanced merge functionality with confirmation and loading states  
         document.getElementById('mergeForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const sourceTagCheckboxes = document.querySelectorAll('input[name="source_tags"]:checked');
+            // Access the selectedMergeTags from the DOMContentLoaded scope
+            const hiddenInputsContainer = document.getElementById('mergeFormInputs');
+            const selectedSourceTags = hiddenInputsContainer ? 
+                Array.from(hiddenInputsContainer.querySelectorAll('input[name="source_tags"]')).map(input => input.value) : [];
+            
             const destinationTag = document.getElementById('destinationTag');
             const mergeButton = document.getElementById('mergeButton');
             const mergeButtonText = document.getElementById('mergeButtonText');
             const mergeSpinner = document.getElementById('mergeSpinner');
             
-            // Get selected values
-            const selectedSourceTags = Array.from(sourceTagCheckboxes).map(checkbox => checkbox.value);
             const selectedDestination = destinationTag.value;
             
             // Validation
@@ -585,9 +673,14 @@
             }
             
             // Calculate total questions that will be affected
-            const sourceTagsWithCounts = Array.from(sourceTagCheckboxes).map(checkbox => {
-                const label = checkbox.nextElementSibling;
-                return label.textContent.trim();
+            const sourceTagsWithCounts = selectedSourceTags.map(tagValue => {
+                const tagItem = document.querySelector(`.merge-tag-item[data-tag-value="${tagValue}"]`);
+                if (tagItem) {
+                    const tagName = tagItem.querySelector('.tag-name').textContent;
+                    const tagCount = tagItem.querySelector('.tag-count').textContent;
+                    return `${tagName} ${tagCount}`;
+                }
+                return tagValue;
             });
             const destinationWithCount = destinationTag.selectedOptions[0].textContent;
             
@@ -616,8 +709,59 @@
             }
         });
 
-        // Auto-hide alerts and handle post-merge cleanup
+        // Enhanced merge functionality with confirmation and loading states
         document.addEventListener('DOMContentLoaded', function() {
+            // Global variables for merge system
+            let selectedMergeTags = new Set();
+            
+            // Merge tags selection management
+            function updateMergeTagCounter() {
+                const counter = document.getElementById('selectedSourceCount');
+                if (counter) {
+                    counter.textContent = selectedMergeTags.size;
+                }
+                
+                // Update visual state for all merge items
+                document.querySelectorAll('.merge-tag-item').forEach(function(item) {
+                    const tagValue = item.getAttribute('data-tag-value');
+                    if (selectedMergeTags.has(tagValue)) {
+                        item.setAttribute('data-selected', 'true');
+                    } else {
+                        item.setAttribute('data-selected', 'false');
+                    }
+                });
+                
+                // Update hidden form inputs
+                const hiddenContainer = document.getElementById('mergeFormInputs') || createHiddenInputsContainer();
+                hiddenContainer.innerHTML = '';
+                
+                selectedMergeTags.forEach(function(tagValue) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'source_tags';
+                    input.value = tagValue;
+                    hiddenContainer.appendChild(input);
+                });
+            }
+            
+            function createHiddenInputsContainer() {
+                const container = document.createElement('div');
+                container.id = 'mergeFormInputs';
+                container.style.display = 'none';
+                document.getElementById('mergeForm').appendChild(container);
+                return container;
+            }
+            
+            function toggleMergeTag(tagValue) {
+                if (selectedMergeTags.has(tagValue)) {
+                    selectedMergeTags.delete(tagValue);
+                } else {
+                    selectedMergeTags.add(tagValue);
+                }
+                updateMergeTagCounter();
+            }
+
+            // Auto-hide alerts
             const alerts = document.querySelectorAll('.alert-dismissible');
             alerts.forEach(function(alert) {
                 setTimeout(function() {
@@ -633,29 +777,44 @@
             const pendingMergeTags = sessionStorage.getItem('pendingMergeSourceTags');
             
             if (successAlert && pendingMergeTags) {
-                // Clear the source tag selections
-                document.querySelectorAll('input[name="source_tags"]').forEach(function(checkbox) {
-                    checkbox.checked = false;
-                });
+                // Clear the merge tag selections
+                selectedMergeTags.clear();
                 
                 // Clear the destination tag selection
                 document.getElementById('destinationTag').value = '';
                 
-                // Clear the search box
-                document.getElementById('sourceTagsSearch').value = '';
-                
                 // Update counter and visual states
-                updateSourceTagCounter();
-                
-                // Trigger search to show all tags
-                document.getElementById('sourceTagsSearch').dispatchEvent(new Event('input'));
+                updateMergeTagCounter();
                 
                 // Remove the stored data
                 sessionStorage.removeItem('pendingMergeSourceTags');
             }
             
+
+
+
+            // Initialize merge tag system
+            document.querySelectorAll('.merge-tag-item').forEach(function(item, index) {
+                // Add loading animation
+                item.classList.add('tag-loading');
+                item.style.animationDelay = (index * 0.05) + 's';
+                
+                // Add click handler for selection
+                item.addEventListener('click', function(e) {
+                    // Prevent triggering when clicking on buttons or links
+                    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A') {
+                        return;
+                    }
+                    
+                    const tagValue = this.getAttribute('data-tag-value');
+                    toggleMergeTag(tagValue);
+                });
+            });
+
             // Initialize visual states on page load
-            updateSourceTagCounter();
+            updateMergeTagCounter();
+
+
 
             // Initialize chapter tag management
             initializeChapterTagManagement();
@@ -665,36 +824,97 @@
             // Delegated event listener for all chapter modals
             document.body.addEventListener('click', function(e) {
                 if (e.target.classList.contains('add-tag-btn')) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     addTagToChapter(e.target);
                 } else if (e.target.classList.contains('remove-tag-btn')) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     removeTagFromChapter(e.target);
                 }
             });
 
             // Setup search for all chapter modals
             document.querySelectorAll('.modal').forEach(modal => {
-                const searchInput = modal.querySelector('.add-tag-search');
+                const searchInput = modal.querySelector('.chapter-tag-search');
                 if (searchInput) {
-                    const availableTagsContainer = modal.querySelector('.available-tags-container');
+                    const availableTagsContainer = modal.querySelector('.chapter-available-tags-container');
                     if (availableTagsContainer) {
-                        setupTagSearch(searchInput, availableTagsContainer);
+                        setupChapterTagSearch(searchInput, availableTagsContainer);
                     }
+                }
+                
+                // Add form submission debugging
+                const form = modal.querySelector('form');
+                if (form && form.action.includes('/chapter/') && form.action.includes('/edit')) {
+                    form.addEventListener('submit', function(e) {
+                        // Ensure all visible tags have corresponding hidden inputs
+                        const currentTagsContainer = modal.querySelector('.current-tags-container');
+                        const hiddenInputsContainer = modal.querySelector('.hidden-tag-inputs');
+                        const visibleTags = currentTagsContainer.querySelectorAll('.badge[data-tag]');
+                        const hiddenInputs = hiddenInputsContainer.querySelectorAll('input[name="tags"]');
+                        
+                        console.log('Form submitting...');
+                        console.log('Visible tags:', Array.from(visibleTags).map(tag => tag.getAttribute('data-tag')));
+                        console.log('Hidden inputs:', Array.from(hiddenInputs).map(input => input.value));
+                        
+                        // Validate that every visible tag has a corresponding hidden input
+                        const visibleTagNames = Array.from(visibleTags).map(tag => tag.getAttribute('data-tag'));
+                        const hiddenTagNames = Array.from(hiddenInputs).map(input => input.value);
+                        
+                        // Remove any orphaned hidden inputs (tags that don't have visible badges)
+                        hiddenInputs.forEach(input => {
+                            if (!visibleTagNames.includes(input.value)) {
+                                console.log('Removing orphaned hidden input:', input.value);
+                                input.remove();
+                            }
+                        });
+                        
+                        // Add any missing hidden inputs (visible badges without hidden inputs)
+                        visibleTagNames.forEach(tagName => {
+                            if (!hiddenTagNames.includes(tagName)) {
+                                console.log('Adding missing hidden input for:', tagName);
+                                const hiddenInput = document.createElement('input');
+                                hiddenInput.type = 'hidden';
+                                hiddenInput.name = 'tags';
+                                hiddenInput.value = tagName;
+                                hiddenInput.setAttribute('data-tag', tagName);
+                                hiddenInputsContainer.appendChild(hiddenInput);
+                            }
+                        });
+                        
+                        // Final validation
+                        const finalFormData = new FormData(this);
+                        const finalTags = finalFormData.getAll('tags');
+                        console.log('Final form submission with tags:', finalTags);
+                        console.log('All form data:');
+                        for (let [key, value] of finalFormData.entries()) {
+                            console.log(key, value);
+                        }
+                    });
                 }
             });
         }
 
         // Chapter tag management functions
         function addTagToChapter(buttonElement) {
-            const tagName = buttonElement.dataset.tagName;
+            const tagName = buttonElement.getAttribute('data-tag-name');
             const modal = buttonElement.closest('.modal');
-            if (!modal) return;
+            
+            if (!modal || !tagName) {
+                console.log('Missing modal or tagName:', { modal, tagName });
+                return;
+            }
 
             const currentTagsContainer = modal.querySelector('.current-tags-container');
             const hiddenInputsContainer = modal.querySelector('.hidden-tag-inputs');
             
+            console.log('Containers found:', { currentTagsContainer, hiddenInputsContainer });
+            
             // Check if tag is already added
             const existingTag = currentTagsContainer.querySelector(`[data-tag="${tagName}"]`);
             if (existingTag) {
+                console.log('Tag already exists:', tagName);
                 return; // Tag already exists, do nothing
             }
             
@@ -723,12 +943,18 @@
             hiddenInput.value = tagName;
             hiddenInput.setAttribute('data-tag', tagName);
             hiddenInputsContainer.appendChild(hiddenInput);
+            
+            console.log('Added tag:', tagName, 'Hidden inputs now:', hiddenInputsContainer.querySelectorAll('input[name="tags"]').length);
         }
 
         function removeTagFromChapter(buttonElement) {
-            const tagName = buttonElement.dataset.tagName;
+            const tagName = buttonElement.getAttribute('data-tag-name');
             const modal = buttonElement.closest('.modal');
-            if (!modal) return;
+            
+            if (!modal || !tagName) {
+                console.log('Missing modal or tagName in remove:', { modal, tagName });
+                return;
+            }
 
             const currentTagsContainer = modal.querySelector('.current-tags-container');
             const hiddenInputsContainer = modal.querySelector('.hidden-tag-inputs');
@@ -743,6 +969,7 @@
             const hiddenInput = hiddenInputsContainer.querySelector(`[data-tag="${tagName}"]`);
             if (hiddenInput) {
                 hiddenInput.remove();
+                console.log('Removed tag:', tagName, 'Hidden inputs now:', hiddenInputsContainer.querySelectorAll('input[name="tags"]').length);
             }
             
             // If no tags left, show "No tags assigned yet" message
@@ -755,13 +982,13 @@
             }
         }
 
-        function setupTagSearch(searchInput, availableTagsContainer) {
+        function setupChapterTagSearch(searchInput, availableTagsContainer) {
             searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                const tagItems = availableTagsContainer.querySelectorAll('.available-tag-item');
+                const searchTerm = this.value.toLowerCase().trim();
+                const tagItems = availableTagsContainer.querySelectorAll('.chapter-available-tag-item');
                 
                 tagItems.forEach(function(item) {
-                    const tagName = item.getAttribute('data-tag-name');
+                    const tagName = item.getAttribute('data-tag-name') || '';
                     const tagText = item.textContent.toLowerCase();
                     
                     if (searchTerm === '' || tagName.includes(searchTerm) || tagText.includes(searchTerm)) {

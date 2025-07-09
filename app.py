@@ -913,14 +913,24 @@ def create_chapter():
 def edit_chapter(slug):
     tag_data = load_tag_data()
     
+    # Debug: Print received form data
+    print(f"DEBUG: Editing chapter with slug: {slug}")
+    print(f"DEBUG: Form data received:")
+    for key, value in request.form.items():
+        print(f"  {key}: {value}")
+    print(f"DEBUG: All tags received: {request.form.getlist('tags')}")
+    
     # Find the chapter_id based on slug
     chapter_id = None
     for c_id, c in tag_data['chapters'].items():
         if slugify(c['name']) == slug:
             chapter_id = c_id
             break
-            
+    
+    print(f"DEBUG: Found chapter_id: {chapter_id}")
+    
     if not chapter_id:
+        print(f"DEBUG: Chapter not found for slug: {slug}")
         # Handle case where chapter is not found
         return redirect(url_for('tag_centralizer'))
 
@@ -929,12 +939,20 @@ def edit_chapter(slug):
     new_description = request.form.get('description', '').strip()
     new_tags = request.form.getlist('tags')
 
+    print(f"DEBUG: Updating chapter with:")
+    print(f"  name: {new_name}")
+    print(f"  description: {new_description}")
+    print(f"  tags: {new_tags}")
+
     if new_name:
         # Update chapter details
         tag_data['chapters'][chapter_id]['name'] = new_name
         tag_data['chapters'][chapter_id]['description'] = new_description
         tag_data['chapters'][chapter_id]['tags'] = new_tags
         save_tag_data(tag_data)
+        print(f"DEBUG: Chapter updated successfully")
+    else:
+        print(f"DEBUG: No name provided, skipping update")
             
     return redirect(url_for('tag_centralizer'))
 

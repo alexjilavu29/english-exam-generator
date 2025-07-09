@@ -4,20 +4,8 @@
       "name": "Reformatted with AI",
       "description": ""
     },
-    "accidents": {
-      "name": "accidents",
-      "description": ""
-    },
     "adverbial phrases": {
       "name": "adverbial phrases",
-      "description": ""
-    },
-    "adverbs/adjectives": {
-      "name": "adverbs/adjectives",
-      "description": ""
-    },
-    "advertising": {
-      "name": "advertising",
       "description": ""
     },
     "agreement": {
@@ -424,10 +412,6 @@
       "name": "accomodation/homes",
       "description": ""
     },
-    "weather": {
-      "name": "weather",
-      "description": ""
-    },
     "pollution": {
       "name": "pollution",
       "description": ""
@@ -516,8 +500,8 @@
       "name": "geography/landscape/scenery",
       "description": ""
     },
-    "criticism/reproach": {
-      "name": "criticism/reproach",
+    "test": {
+      "name": "test",
       "description": ""
     }
   },
@@ -527,7 +511,6 @@
       "name": "Grammar",
       "description": "",
       "tags": [
-        "adverbs/adjectives",
         "adverbial phrases",
         "agreement",
         "articles",
@@ -561,7 +544,8 @@
         "nouns",
         "determiners/quantifiers",
         "participle",
-        "modal verbs/phrases"
+        "modal verbs/phrases",
+        "Reformatted with AI"
       ]
     },
     "the-physical-world": {
@@ -572,8 +556,7 @@
         "disasters",
         "geography/landscape/scenery",
         "materials",
-        "physical characteristics",
-        "weather"
+        "physical characteristics"
       ]
     },
     "living-things": {
@@ -583,7 +566,10 @@
       "tags": [
         "nature/wildlife/animals/pets",
         "environment/conservation/recycling",
-        "pollution"
+        "pollution",
+        "Reformatted with AI",
+        "adverbial phrases",
+        "agreement"
       ]
     },
     "the-bodyandhealth": {
@@ -625,14 +611,18 @@
       "id": "place/spaceandmovement",
       "name": "Place/Space&Movement",
       "description": "Spatial relations (position&direction, distance, geometry/shape)\r\nTransport Modes/Traffic\r\nInfrastructure\r\nTravel&Tourism/Holidays\r\nNavigation/Mapping\r\nMotion/Mechanics\r\nHuman settlements&Land use",
-      "tags": []
+      "tags": [
+        "Reformatted with AI"
+      ]
     },
     "time/quantityandmeasurement": {
       "id": "time/quantityandmeasurement",
-      "name": "Time/Quantity&Measurement",
-      "description": "",
+      "name": "Time, Quantity&Measurement",
+      "description": "Calendar, clock time/Frequency/Schedules\r\nNumbers&Arithmetic\r\nMagnitude&Degree\r\nData&Statistics",
       "tags": [
-        "adverbs/adjectives"
+        "amount/quantity",
+        "time",
+        "Reformatted with AI"
       ]
     },
     "workandprofessions": {
@@ -649,12 +639,12 @@
       "description": "Money/Banking&Wealth\r\nIndustry&Services\r\nCommerce/Sales&Advertising\r\nTourism\r\nFinance&Investment\r\nMacroeconomics\r\nEntrepreneurship",
       "tags": [
         "economy/business",
-        "advertising",
         "events/exhibitions",
         "industry",
         "money",
         "tourism",
-        "transactions"
+        "transactions",
+        "Reformatted with AI"
       ]
     },
     "science/researchandtechnology": {
@@ -667,7 +657,9 @@
       "id": "thoughtandlearning/education",
       "name": "Thought&Learning/Education",
       "description": "",
-      "tags": []
+      "tags": [
+        "Reformatted with AI"
+      ]
     },
     "languageandcommunication": {
       "id": "languageandcommunication",

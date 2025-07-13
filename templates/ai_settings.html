@@ -48,13 +48,16 @@
                             
                             <div class="mb-3">
                                 <label for="model" class="form-label">AI Model</label>
-                                <select class="form-select" id="model" name="model">
-                                    <option value="gpt-4o" {% if model == 'gpt-4o' %}selected{% endif %}>GPT-4o</option>
-                                    <option value="o4-mini-2025-04-16" {% if model == 'o4-mini-2025-04-16' %}selected{% endif %}>O4 Mini</option>
-                                    <option value="gpt-4.1-2025-04-14" {% if model == 'gpt-4.1-2025-04-14' %}selected{% endif %}>GPT 4.1</option>
-                                    <option value="o3-2025-04-16" {% if model == 'o3-2025-04-16' %}selected{% endif %}>O3</option>
-                                    </select>
+                                <select class="form-select" id="model" name="model" disabled>
+                                    <option value="gpt-4o" selected>GPT-4o</option>
+                                    <option value="o4-mini-2025-04-16">O4 Mini</option>
+                                    <option value="gpt-4.1-2025-04-14">GPT 4.1</option>
+                                    <option value="o3-2025-04-16">O3</option>
+                                </select>
                                 <div class="form-text">Select the OpenAI model to use for question reformatting.</div>
+                                <div class="alert alert-warning mt-2">
+                                    <strong>Note:</strong> Model selection is temporarily disabled and fixed to GPT-4o. This feature will be re-enabled in a future update.
+                                </div>
                             </div>
                             
                             <div class="alert alert-info">

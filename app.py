@@ -611,7 +611,8 @@ def settings():
         # Handle AI Settings
         if 'api_key' in request.form:
             api_key = request.form.get('api_key', '').strip()
-            model = request.form.get('model', 'gpt-4o').strip()
+            # Force model to gpt-4o
+            model = 'gpt-4o'
             
             # Save settings to session and .env file
             session['openai_api_key'] = api_key

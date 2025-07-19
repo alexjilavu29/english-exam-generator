@@ -608,79 +608,36 @@ def create_word_document(exam_questions, **kwargs):
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
     if request.method == 'POST':
-        # Handle AI Settings
-        if 'api_key' in request.form:
+        # Handle API key update
+        if 'save_api_key' in request.form:
             api_key = request.form.get('api_key', '').strip()
-            # Force model to gpt-4o
-            model = 'gpt-4o'
-            
-            # Save settings to session and .env file
-            session['openai_api_key'] = api_key
-            session['openai_model'] = model
-            
-            # Save to .env file
             if api_key:
+                session['openai_api_key'] = api_key
                 set_key(env_path, 'OPENAI_API_KEY', api_key)
+                ai_formatter.set_api_key(api_key)
+
+        # Handle Model update
+        if 'save_model' in request.form:
+            model = request.form.get('model', 'gpt-4o')
+            session['openai_model'] = model
             if model:
                 set_key(env_path, 'OPENAI_MODEL', model)
-            
-            # Update AIFormatter
-            ai_formatter.set_api_key(api_key)
-            ai_formatter.set_model(model)
-            
-            return redirect(url_for('settings'))
+                ai_formatter.set_model(model)
         
-        # Handle file uploads
-        if 'questions_file' in request.files:
-            file = request.files['questions_file']
-            if file.filename and file.filename.endswith('.json'):
-                try:
-                    # Load and validate the uploaded questions file
-                    uploaded_data = json.load(file)
-                    if isinstance(uploaded_data, list):
-                        # Save the new questions first to ensure sync works on the new data
-                        save_questions(uploaded_data)
-                        
-                        # Synchronize tags from the newly uploaded file
-                        added_tags = sync_tags_from_questions()
-                        
-                        session['upload_message'] = f"Questions file uploaded successfully. {added_tags} new tags synchronized."
-                    else:
-                        session['upload_error'] = "Invalid questions file format. Expected a JSON array."
-                except json.JSONDecodeError:
-                    session['upload_error'] = "Invalid JSON file."
-                except Exception as e:
-                    session['upload_error'] = f"Error uploading file: {str(e)}"
-            else:
-                session['upload_error'] = "Please select a valid JSON file."
-            
-            return redirect(url_for('settings'))
-        
-        if 'tags_file' in request.files:
-            file = request.files['tags_file']
-            if file.filename and file.filename.endswith('.json'):
-                try:
-                    # Load and validate the uploaded tags file
-                    uploaded_data = json.load(file)
-                    if isinstance(uploaded_data, dict) and 'tags' in uploaded_data and 'chapters' in uploaded_data:
-                        # Save the new tag data
-                        save_tag_data(uploaded_data)
-                        session['upload_message'] = "Tags and chapters file uploaded successfully."
-                    else:
-                        session['upload_error'] = "Invalid tags file format. Expected JSON with 'tags' and 'chapters' keys."
-                except json.JSONDecodeError:
-                    session['upload_error'] = "Invalid JSON file."
-                except Exception as e:
-                    session['upload_error'] = f"Error uploading file: {str(e)}"
-            else:
-                session['upload_error'] = "Please select a valid JSON file."
-            
-            return redirect(url_for('settings'))
-    
-    # Get current settings
+        # Handle prompt update
+        if 'save_prompt' in request.form:
+            prompt = request.form.get('prompt', '').strip()
+            if prompt:
+                set_key(env_path, 'AI_PROMPT', prompt)
+                ai_formatter.set_prompt(prompt)
+
+        return redirect(url_for('settings'))
+
+    # Get current settings for display
     api_key = os.environ.get('OPENAI_API_KEY', '') or session.get('openai_api_key', '')
-    model = os.environ.get('OPENAI_MODEL', 'gpt-4o') or session.get('openai_model', 'gpt-4o')
-    
+    model = session.get('openai_model') or os.environ.get('OPENAI_MODEL', 'gpt-4o')
+    prompt = os.environ.get('AI_PROMPT', ai_formatter.prompt)
+
     # Create a preview of the API key
     api_key_preview = "Not set"
     if api_key:
@@ -694,9 +651,9 @@ def settings():
     upload_error = session.pop('upload_error', None)
     
     return render_template('settings.html', 
-                         api_key=api_key, 
                          api_key_preview=api_key_preview, 
                          model=model,
+                         prompt=prompt,
                          upload_message=upload_message,
                          upload_error=upload_error)
 
@@ -724,7 +681,9 @@ def reformat_question(index):
         try:
             # Get API key from .env first, then session as fallback
             api_key = os.environ.get('OPENAI_API_KEY', '') or session.get('openai_api_key', '')
-            model = os.environ.get('OPENAI_MODEL', 'gpt-4o') or session.get('openai_model', 'gpt-4o')
+            # Prioritize session to get the most recent model selection
+            model = session.get('openai_model') or os.environ.get('OPENAI_MODEL', 'gpt-4o')
+            prompt = os.environ.get('AI_PROMPT', ai_formatter.prompt)
             
             if not api_key:
                 return jsonify({'error': 'OpenAI API key is not set. Please configure it in AI Settings.'}), 400
@@ -732,6 +691,7 @@ def reformat_question(index):
             # Configure AIFormatter
             ai_formatter.set_api_key(api_key)
             ai_formatter.set_model(model)
+            ai_formatter.set_prompt(prompt)
             
             # Add a timestamp to ensure we're not getting cached results
             timestamp = request.args.get('t', '')

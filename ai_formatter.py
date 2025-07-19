@@ -1,13 +1,39 @@
 import os
 import json
+import re
 from openai import OpenAI
 import time
 
+DEFAULT_PROMPT = """
+You are given an English exam question that contains a gap to be filled with the word "{correct_answer}".
+
+Original question text (with the gap already shown as dots): {question_body}
+
+Answer options (index aligned with the original): {answers_json}
+
+The correct answer is "{correct_answer}".
+
+**TASK**  
+Write **exactly three** alternative formulations of this question.  
+Hard rules:  
+1. Keep the gap as seven dots: "......."  
+2. Make sure "{correct_answer}" is still the only correct answer.  
+3. Each formulation must differ significantly from the original and from each other while maintaining the same difficulty.
+
+**OUTPUT FORMAT (MANDATORY)**  
+Respond **only** with a valid JSON array of three strings, for example:  
+
+["First reformulation with .......", "Second reformulation with .......", "Third reformulation with ......."]
+
+No additional JSON keys, Markdown, or comments.
+"""
+
 class AIFormatter:
-    def __init__(self, api_key=None, model="gpt-4o"):
-        """Initialize the AI formatter with API key and model."""
+    def __init__(self, api_key=None, model="gpt-4o", prompt=None):
+        """Initialize the AI formatter with API key, model, and prompt."""
         self.api_key = api_key
         self.model = model
+        self.prompt = prompt or DEFAULT_PROMPT
         self.client = None
         if api_key:
             self.client = OpenAI(api_key=api_key)
@@ -20,6 +46,46 @@ class AIFormatter:
     def set_model(self, model):
         """Set or update the AI model to use."""
         self.model = model
+    
+    def set_prompt(self, prompt):
+        """Set or update the AI prompt template."""
+        self.prompt = prompt or DEFAULT_PROMPT
+    
+    def _parse_reformulations(self, raw_text):
+        """Extract exactly three reformulated questions from the model output.
+
+        The model is asked to reply with a JSON array of three strings, but some
+        models prepend/append extra reasoning text.  We try strict JSON first,
+        then look for the first JSON array in the text.
+
+        Args:
+            raw_text (str): Full text returned by the model.
+
+        Returns:
+            list[str]: Three reformulated questions.
+
+        Raises:
+            ValueError: If no JSON array can be found.
+        """
+        # Attempt direct JSON parsing
+        try:
+            data = json.loads(raw_text)
+            if isinstance(data, list):
+                return data
+        except json.JSONDecodeError:
+            pass
+
+        # Fallback – find the first JSON array in the string
+        match = re.search(r"\[[\s\S]*?\]", raw_text)
+        if match:
+            try:
+                data = json.loads(match.group(0))
+                if isinstance(data, list):
+                    return data
+            except json.JSONDecodeError:
+                pass
+
+        raise ValueError("Could not extract JSON array with reformulations")
     
     def reformat_question(self, question):
         """Generate three alternative formulations of the question.
@@ -43,83 +109,57 @@ class AIFormatter:
         timestamp = int(time.time())
         
         # Prepare prompt for the AI
-        prompt = f"""
-        I have an English exam question with a gap that needs to be filled with the word "{correct_answer}".
-        
-        Original question: {question_body}
-        
-        Answer options:
-        {json.dumps(answers, indent=2)}
-        
-        The correct answer is: {correct_answer}
-        
-        Please generate 3 COMPLETELY DIFFERENT reformulations of this question. Each must:
-        1. Keep the same gap marked with dots (.......)
-        2. Maintain the context so that "{correct_answer}" is still the correct answer
-        3. Be significantly different from both the original and each other
-        4. Preserve the difficulty level
-        
-        Your task is to create diverse versions with the same meaning but different wording.
-        
-        Format your response as 3 separate reformulations, one per line, with no additional text.
-        Timestamp: {timestamp}
-        """
+        prompt = self.prompt.format(
+            correct_answer=correct_answer,
+            question_body=question_body,
+            answers_json=json.dumps(answers, indent=2)
+        )
         
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
+            reasoning_models = ['o4-mini', 'o3', 'gpt-4.1']
+            is_reasoning_model = any(m in self.model for m in reasoning_models)
+
+            params = {
+                "model": self.model,
+                "messages": [
                     {"role": "system", "content": "You are a specialist in creating alternative formulations of English language exam questions. Your task is to provide diverse reformulations of questions while preserving their meaning and answer."},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.9,     # Higher randomness
-                max_tokens=1000,     # Ensure enough space for responses
-                top_p=0.95,          # Sample from more varied tokens
-                frequency_penalty=0.8, # Reduce repetition
-                presence_penalty=0.6   # Encourage new phrases
-            )
+                "temperature": 1.0
+            }
+
+            if is_reasoning_model:
+                params['max_completion_tokens'] = 1000
+            else:
+                # These parameters are not supported by some reasoning models
+                params['max_tokens'] = 1000
+                params['top_p'] = 0.95
+                params['frequency_penalty'] = 0.8
+                params['presence_penalty'] = 0.6
             
-            # Parse the response into three separate reformulations
+            response = self.client.chat.completions.create(**params)
+            
+            # Parse and validate the response
             reformulations_text = response.choices[0].message.content.strip()
             print(f"API Response: {reformulations_text}")  # Debug log
-            
-            # Split by newlines and filter out empty lines and lines that look like instructions
-            reformulations = []
-            for line in reformulations_text.split('\n'):
-                line = line.strip()
-                # Skip empty lines and lines that look like numbers, bullets, or instructions
-                if line and not line.startswith(('1.', '2.', '3.', '-', '*', 'Reformulation')) and 'reformulation' not in line.lower():
-                    reformulations.append(line)
-            
-            # Ensure we have exactly 3 reformulations
+
+            try:
+                reformulations = self._parse_reformulations(reformulations_text)
+            except Exception as parse_err:
+                print(f"Error extracting JSON array: {parse_err}")
+                # Fallback to simple line‑based parsing
+                reformulations = [ln.strip() for ln in reformulations_text.splitlines() if ln.strip()]
+
+            # Ensure exactly three reformulations
             if len(reformulations) < 3:
-                print(f"Warning: Only received {len(reformulations)} reformulations")
-                # Generate more diverse options
                 while len(reformulations) < 3:
-                    if len(reformulations) == 0:
-                        reformulations.append(f"Alternative for {timestamp}: {question_body}")
-                    else:
-                        # Create variations from existing reformulations
-                        base = reformulations[0]
-                        reformulations.append(f"Another version: {base}")
-            
-            # Trim to 3 reformulations if we got more
-            reformulations = reformulations[:3]
-            
-            # Verify we're not returning identical reformulations
-            if len(set(reformulations)) < len(reformulations):
-                print("Warning: Duplicate reformulations detected")
-                # Make the duplicates different by adding prefixes
-                for i in range(1, len(reformulations)):
-                    if reformulations[i] in reformulations[:i]:
-                        reformulations[i] = f"Variation {i+1}: {reformulations[i]}"
-            
-            # Ensure the reformulations are different from the original
-            if question_body in reformulations:
-                print("Warning: Original text included in reformulations")
-                index = reformulations.index(question_body)
-                reformulations[index] = f"Similar version {timestamp}: {question_body}"
-            
+                    reformulations.append(f"Fallback reformulation {len(reformulations)+1}: {question_body}")
+            elif len(reformulations) > 3:
+                reformulations = reformulations[:3]
+
+            # Guarantee all items are strings
+            reformulations = [str(r) for r in reformulations]
+
             return reformulations
             
         except Exception as e:
@@ -129,4 +169,4 @@ class AIFormatter:
                 f"Original question: {question_body}",
                 f"Alternative formulation ({timestamp}): The gap word {correct_answer} should be used in {question_body}",
                 f"Second alternative ({timestamp}): Try using {correct_answer} to complete {question_body}"
-            ] 
+            ]

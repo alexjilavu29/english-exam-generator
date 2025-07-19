@@ -61,32 +61,69 @@
                         <h5 class="mb-0">AI Reformatting Settings</h5>
                     </div>
                     <div class="card-body">
-                        <form method="post">
+                        <!-- API Key Form -->
+                        <form method="post" class="mb-4">
                             <div class="mb-3">
-                                <label for="api_key" class="form-label">
-                                    OpenAI API Key
-                                    <span class="key-preview">{{ api_key_preview }}</span>
-                                </label>
-                                <input type="password" class="form-control" id="api_key" name="api_key" value="{{ api_key }}" required>
-                                <div class="form-text">Your OpenAI API key is required for the question reformatting feature.</div>
+                                <label for="api_key" class="form-label">OpenAI API Key</label>
+                                <input type="password" class="form-control" id="api_key" name="api_key" placeholder="Enter new key to update">
+                                <div class="form-text">
+                                    {% if api_key_preview == "Not set" %}
+                                        Your OpenAI API key is not set.
+                                    {% else %}
+                                        An API key is already set ({{ api_key_preview }}). To change it, enter a new key above.
+                                    {% endif %}
+                                </div>
                             </div>
-                            
+                            <button type="submit" name="save_api_key" class="btn btn-primary">Save API Key</button>
+                        </form>
+
+                        <hr>
+
+                        <!-- Model Selection Form -->
+                        <form method="post">
                             <div class="mb-3">
                                 <label for="model" class="form-label">AI Model</label>
                                 <select class="form-select" id="model" name="model">
                                     <option value="gpt-4o" {% if model == 'gpt-4o' %}selected{% endif %}>GPT-4o</option>
+                                    <option value="gpt-4-turbo-preview" {% if model == 'gpt-4-turbo-preview' %}selected{% endif %}>GPT-4 Turbo Preview</option>
+                                    <option value="gpt-3.5-turbo" {% if model == 'gpt-3.5-turbo' %}selected{% endif %}>GPT-3.5 Turbo</option>
                                     <option value="o4-mini-2025-04-16" {% if model == 'o4-mini-2025-04-16' %}selected{% endif %}>O4 Mini</option>
                                     <option value="gpt-4.1-2025-04-14" {% if model == 'gpt-4.1-2025-04-14' %}selected{% endif %}>GPT 4.1</option>
                                     <option value="o3-2025-04-16" {% if model == 'o3-2025-04-16' %}selected{% endif %}>O3</option>
                                 </select>
-                                <div class="form-text">Select the OpenAI model to use for question reformatting.</div>
+                                <div class="form-text">Current model: <strong>{{ model }}</strong>. Select a new model to use for question reformatting.</div>
                             </div>
-                            
-                            <button type="submit" class="btn btn-primary">Save AI Settings</button>
+                            <button type="submit" name="save_model" class="btn btn-primary">Save Model</button>
                         </form>
                     </div>
                 </div>
 
+                <!-- Prompt Settings -->
+                <div class="card settings-section">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">AI Prompt Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" onsubmit="return confirm('Are you sure you want to save this prompt? The previous one will be permanently replaced.');">
+                            <div class="mb-3">
+                                <label for="prompt" class="form-label">AI Reformatting Prompt</label>
+                                <textarea class="form-control" id="prompt" name="prompt" rows="15">{{ prompt }}</textarea>
+                                <div class="form-text">
+                                    Edit the prompt used for AI reformulations. Use placeholders like <code>{correct_answer}</code>, <code>{question_body}</code>, and <code>{answers_json}</code>.
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-warning">
+                                <strong>Warning:</strong> Modifying the prompt can significantly affect the quality and format of AI reformulations.
+                            </div>
+
+                            <button type="submit" name="save_prompt" class="btn btn-warning">Save Prompt</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
                 <!-- File Downloads -->
                 <div class="card settings-section">
                     <div class="card-header bg-success text-white">
@@ -104,9 +141,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-md-6">
                 <!-- Upload Questions -->
                 <div class="card settings-section">
                     <div class="card-header bg-warning text-dark">

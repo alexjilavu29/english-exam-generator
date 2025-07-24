@@ -55,10 +55,22 @@ app.secret_key = os.urandom(24)  # For session management
 def utility_processor():
     return dict(slugify=slugify)
 
-# Initialize AI formatter with API key from .env
+# Initialize AI formatter with API keys from .env
 openai_api_key = os.environ.get('OPENAI_API_KEY', '')
+gemini_api_key = os.environ.get('GEMINI_API_KEY', '')
 openai_model = os.environ.get('OPENAI_MODEL', 'gpt-4o')
-ai_formatter = AIFormatter(api_key=openai_api_key, model=openai_model)
+num_variations = int(os.environ.get('NUM_VARIATIONS', '3'))
+use_context = os.environ.get('USE_CONTEXT', 'false').lower() == 'true'
+context_limit = int(os.environ.get('CONTEXT_LIMIT', '10'))
+
+ai_formatter = AIFormatter(
+    openai_api_key=openai_api_key,
+    gemini_api_key=gemini_api_key,
+    model=openai_model,
+    num_variations=num_variations,
+    use_context=use_context,
+    context_limit=context_limit
+)
 
 # For storing original texts when reformatting
 original_texts = {}
@@ -410,11 +422,14 @@ def view_tag(tag):
     questions = load_questions()
     metadata = get_metadata()
     
-    # Filter questions by tag
-    filtered_questions = [q for q in questions if 'tags' in q and tag in q['tags']]
+    # Filter questions by tag and keep track of original indices
+    indexed_questions = []
+    for i, q in enumerate(questions):
+        if 'tags' in q and tag in q['tags']:
+            indexed_questions.append((q, i))
     
     return render_template('tag_questions.html', 
-                          questions=filtered_questions, 
+                          indexed_questions=indexed_questions, 
                           tag=tag,
                           metadata=metadata)
 
@@ -608,13 +623,21 @@ def create_word_document(exam_questions, **kwargs):
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
     if request.method == 'POST':
-        # Handle API key update
-        if 'save_api_key' in request.form:
-            api_key = request.form.get('api_key', '').strip()
+        # Handle OpenAI API key update
+        if 'save_openai_api_key' in request.form:
+            api_key = request.form.get('openai_api_key', '').strip()
             if api_key:
                 session['openai_api_key'] = api_key
                 set_key(env_path, 'OPENAI_API_KEY', api_key)
-                ai_formatter.set_api_key(api_key)
+                ai_formatter.set_openai_api_key(api_key)
+        
+        # Handle Gemini API key update
+        if 'save_gemini_api_key' in request.form:
+            api_key = request.form.get('gemini_api_key', '').strip()
+            if api_key:
+                session['gemini_api_key'] = api_key
+                set_key(env_path, 'GEMINI_API_KEY', api_key)
+                ai_formatter.set_gemini_api_key(api_key)
 
         # Handle Model update
         if 'save_model' in request.form:
@@ -630,30 +653,68 @@ def settings():
             if prompt:
                 set_key(env_path, 'AI_PROMPT', prompt)
                 ai_formatter.set_prompt(prompt)
+        
+        # Handle reformatting options update
+        if 'save_reformatting_options' in request.form:
+            num_variations = int(request.form.get('num_variations', '3'))
+            use_context = 'use_context' in request.form
+            context_limit = int(request.form.get('context_limit', '10'))
+            
+            session['num_variations'] = num_variations
+            session['use_context'] = use_context
+            session['context_limit'] = context_limit
+            
+            set_key(env_path, 'NUM_VARIATIONS', str(num_variations))
+            set_key(env_path, 'USE_CONTEXT', str(use_context).lower())
+            set_key(env_path, 'CONTEXT_LIMIT', str(context_limit))
+            
+            ai_formatter.set_num_variations(num_variations)
+            ai_formatter.set_use_context(use_context)
+            ai_formatter.set_context_limit(context_limit)
 
         return redirect(url_for('settings'))
 
     # Get current settings for display
-    api_key = os.environ.get('OPENAI_API_KEY', '') or session.get('openai_api_key', '')
+    openai_api_key = os.environ.get('OPENAI_API_KEY', '') or session.get('openai_api_key', '')
+    gemini_api_key = os.environ.get('GEMINI_API_KEY', '') or session.get('gemini_api_key', '')
     model = session.get('openai_model') or os.environ.get('OPENAI_MODEL', 'gpt-4o')
     prompt = os.environ.get('AI_PROMPT', ai_formatter.prompt)
+    num_variations = session.get('num_variations') or int(os.environ.get('NUM_VARIATIONS', '3'))
+    use_context = session.get('use_context') if 'use_context' in session else (os.environ.get('USE_CONTEXT', 'false').lower() == 'true')
+    context_limit = session.get('context_limit') or int(os.environ.get('CONTEXT_LIMIT', '10'))
 
-    # Create a preview of the API key
-    api_key_preview = "Not set"
-    if api_key:
-        if len(api_key) > 8:
-            api_key_preview = f"{api_key[:4]}...{api_key[-4:]}"
+    # Create previews of the API keys
+    openai_api_key_preview = "Not set"
+    if openai_api_key:
+        if len(openai_api_key) > 8:
+            openai_api_key_preview = f"{openai_api_key[:4]}...{openai_api_key[-4:]}"
         else:
-            api_key_preview = "Set but too short"
+            openai_api_key_preview = "Set but too short"
+            
+    gemini_api_key_preview = "Not set"
+    if gemini_api_key:
+        if len(gemini_api_key) > 8:
+            gemini_api_key_preview = f"{gemini_api_key[:4]}...{gemini_api_key[-4:]}"
+        else:
+            gemini_api_key_preview = "Set but too short"
+    
+    # Count questions with "Reformatted with AI" tag
+    questions = load_questions()
+    reformatted_count = sum(1 for q in questions if 'tags' in q and 'Reformatted with AI' in q.get('tags', []))
     
     # Get upload messages
     upload_message = session.pop('upload_message', None)
     upload_error = session.pop('upload_error', None)
     
     return render_template('settings.html', 
-                         api_key_preview=api_key_preview, 
+                         openai_api_key_preview=openai_api_key_preview,
+                         gemini_api_key_preview=gemini_api_key_preview, 
                          model=model,
                          prompt=prompt,
+                         num_variations=num_variations,
+                         use_context=use_context,
+                         context_limit=context_limit,
+                         reformatted_count=reformatted_count,
                          upload_message=upload_message,
                          upload_error=upload_error)
 
@@ -679,19 +740,31 @@ def reformat_question(index):
                 original_texts[index] = question['body']
         
         try:
-            # Get API key from .env first, then session as fallback
-            api_key = os.environ.get('OPENAI_API_KEY', '') or session.get('openai_api_key', '')
-            # Prioritize session to get the most recent model selection
+            # Get model and determine which API to use
             model = session.get('openai_model') or os.environ.get('OPENAI_MODEL', 'gpt-4o')
-            prompt = os.environ.get('AI_PROMPT', ai_formatter.prompt)
             
+            # Get appropriate API key based on model
+            if ai_formatter.is_gemini_model(model):
+                api_key = os.environ.get('GEMINI_API_KEY', '') or session.get('gemini_api_key', '')
+                if not api_key:
+                    return jsonify({'error': 'Gemini API key is not set. Please configure it in AI Settings.'}), 400
+            else:
+                api_key = os.environ.get('OPENAI_API_KEY', '') or session.get('openai_api_key', '')
             if not api_key:
                 return jsonify({'error': 'OpenAI API key is not set. Please configure it in AI Settings.'}), 400
             
+            # Get other settings
+            prompt = os.environ.get('AI_PROMPT', ai_formatter.prompt)
+            num_variations = session.get('num_variations') or int(os.environ.get('NUM_VARIATIONS', '3'))
+            use_context = session.get('use_context') if 'use_context' in session else (os.environ.get('USE_CONTEXT', 'false').lower() == 'true')
+            context_limit = session.get('context_limit') or int(os.environ.get('CONTEXT_LIMIT', '10'))
+            
             # Configure AIFormatter
-            ai_formatter.set_api_key(api_key)
             ai_formatter.set_model(model)
             ai_formatter.set_prompt(prompt)
+            ai_formatter.set_num_variations(num_variations)
+            ai_formatter.set_use_context(use_context)
+            ai_formatter.set_context_limit(context_limit)
             
             # Add a timestamp to ensure we're not getting cached results
             timestamp = request.args.get('t', '')
@@ -700,8 +773,11 @@ def reformat_question(index):
             if is_regenerate:
                 print("This is a regeneration request - forcing new reformulations")
             
-            # Get reformulations
-            reformulations = ai_formatter.reformat_question(question)
+            # Get reformulations, passing all questions if context is enabled
+            if use_context:
+                reformulations = ai_formatter.reformat_question(question, questions)
+            else:
+                reformulations = ai_formatter.reformat_question(question)
             
             # Ensure we're not returning the same text three times
             unique_reformulations = set(reformulations)

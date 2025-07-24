@@ -190,35 +190,30 @@
                         </div>
                     </div>
                     
+                    <!-- Answer Options Preview -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Answer Options:</h6>
+                        <div class="card">
+                                <div class="card-body">
+                                <div class="row">
+                                    {% for answer in question.answers %}
+                                    <div class="col-md-3 mb-2">
+                                        <div class="p-2 rounded {% if loop.index0 == question.correct_answer %}bg-success text-white{% else %}bg-light{% endif %}">
+                                            <strong>{{ loop.index }}.</strong> {{ answer }}
+                                            {% if loop.index0 == question.correct_answer %}
+                                            <span class="badge bg-white text-success ms-2">Correct</span>
+                                            {% endif %}
+                                </div>
+                            </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <h6 class="fw-bold mb-3">AI Reformulations:</h6>
                     <div id="reformatOptions" class="row">
-                        <div class="col-md-4 mb-3">
-                            <div class="card option-card" data-option="0">
-                                <div class="card-body">
-                                    <h6 class="card-subtitle mb-2 text-muted">Option 1</h6>
-                                    <div class="badge bg-info mb-2">Reformulation 1</div>
-                                    <p class="card-text reformulation-text"></p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="card option-card" data-option="1">
-                                <div class="card-body">
-                                    <h6 class="card-subtitle mb-2 text-muted">Option 2</h6>
-                                    <div class="badge bg-info mb-2">Reformulation 2</div>
-                                    <p class="card-text reformulation-text"></p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="card option-card" data-option="2">
-                                <div class="card-body">
-                                    <h6 class="card-subtitle mb-2 text-muted">Option 3</h6>
-                                    <div class="badge bg-info mb-2">Reformulation 3</div>
-                                    <p class="card-text reformulation-text"></p>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Reformulation options will be dynamically added here -->
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -243,8 +238,7 @@
             const applyReformatBtn = document.getElementById('applyReformatBtn');
             const revertBtn = document.getElementById('revertBtn');
             const reformatModal = new bootstrap.Modal(document.getElementById('reformatModal'));
-            const optionCards = document.querySelectorAll('.option-card');
-            const reformulationTexts = document.querySelectorAll('.reformulation-text');
+            const reformatOptionsContainer = document.getElementById('reformatOptions');
             const reformatError = document.getElementById('reformatError');
             
             // Spinners
@@ -304,15 +298,34 @@
                     if (response.ok) {
                         reformulations = data.reformulations;
                         
-                        // Update modal with reformulations
+                        // Clear previous options
+                        reformatOptionsContainer.innerHTML = '';
+                        
+                        // Create new reformulation cards dynamically
+                        const numCols = reformulations.length <= 3 ? 4 : (reformulations.length <= 4 ? 3 : 2);
+                        
                         reformulations.forEach((text, index) => {
-                            reformulationTexts[index].textContent = text;
+                            const colDiv = document.createElement('div');
+                            colDiv.className = `col-md-${numCols} mb-3`;
+                            
+                            const cardHtml = `
+                                <div class="card option-card" data-option="${index}">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-2 text-muted">Option ${index + 1}</h6>
+                                        <div class="badge bg-info mb-2">Reformulation ${index + 1}</div>
+                                        <p class="card-text reformulation-text">${text}</p>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            colDiv.innerHTML = cardHtml;
+                            reformatOptionsContainer.appendChild(colDiv);
                         });
                         
+                        // Reattach event listeners to new cards
+                        attachCardListeners();
+                        
                         // Clear any previous selection
-                        optionCards.forEach(card => {
-                            card.classList.remove('selected');
-                        });
                         selectedOption = null;
                         applyReformatBtn.disabled = true;
                         
@@ -353,16 +366,23 @@
                 });
             }
             
-            // Click events for option cards
+            // Function to attach event listeners to dynamically created cards
+            function attachCardListeners() {
+                const optionCards = document.querySelectorAll('.option-card');
+                
             optionCards.forEach(card => {
                 card.addEventListener('click', function() {
                     // Remove selected class from all cards
                     optionCards.forEach(c => {
                         c.classList.remove('selected');
+                            c.style.borderColor = '';
+                            c.style.borderWidth = '';
                     });
                     
                     // Add selected class to clicked card
                     this.classList.add('selected');
+                        this.style.borderColor = '#0d6efd';
+                        this.style.borderWidth = '2px';
                     
                     // Update selected option
                     selectedOption = parseInt(this.getAttribute('data-option'), 10);
@@ -371,6 +391,7 @@
                     applyReformatBtn.disabled = false;
                 });
             });
+            }
             
             // Click event for "Apply Selected" button
             if (applyReformatBtn) {

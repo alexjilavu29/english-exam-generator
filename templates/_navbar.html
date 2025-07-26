@@ -66,6 +66,29 @@
                         <i class="bi bi-sliders me-1"></i>Settings
                     </a>
                 </li>
+                
+                <!-- User Dropdown -->
+                <li class="nav-item dropdown ms-3">
+                    <a class="nav-link dropdown-toggle px-3 py-2 d-flex align-items-center" 
+                       href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-2"></i>
+                        <span class="fw-semibold">{{ current_user.username }}</span>
+                        {% if current_user.is_superadmin() %}
+                        <span class="badge bg-danger ms-2">Admin</span>
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
+                        {% if current_user.is_superadmin() %}
+                        <li><a class="dropdown-item py-2 {% if active_page == 'users' %}active{% endif %}" href="/users">
+                            <i class="bi bi-people me-2"></i>User Management
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {% endif %}
+                        <li><a class="dropdown-item py-2 text-danger" href="/logout">
+                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                        </a></li>
+                    </ul>
+                </li>
             </ul>
         </div>
     </div>
@@ -112,6 +135,11 @@
         min-width: 200px;
     }
     
+    .dropdown-menu-end {
+        right: 0;
+        left: auto;
+    }
+    
     .dropdown-item {
         border-radius: 0.5rem;
         font-weight: 500;
@@ -128,6 +156,11 @@
         color: #0d6efd;
     }
     
+    .dropdown-item.text-danger:hover {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545 !important;
+    }
+    
     .navbar-toggler {
         padding: 0.5rem;
         border-radius: 0.5rem;
@@ -136,6 +169,11 @@
     .navbar-toggler:focus {
         box-shadow: none;
         border-color: transparent;
+    }
+    
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
     }
     
     @media (max-width: 991.98px) {

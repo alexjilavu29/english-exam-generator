@@ -4,13 +4,16 @@ import json
 import random
 import argparse
 import re
+import secrets
 from unicodedata import normalize
 
-from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, session
+from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, session, flash
+from flask_login import login_required, current_user, login_user, logout_user
 from docx import Document
 from word_formatter import create_word_document
 from ai_formatter import AIFormatter
 from dotenv import load_dotenv, set_key
+from auth import AuthManager, superadmin_required, setup_session_security
 
 def slugify(text):
     if text is None:
@@ -49,7 +52,19 @@ template_dir = os.path.join(current_dir, 'templates')
 
 # Initialize Flask app with explicit template folder
 app = Flask(__name__, template_folder=template_dir)
-app.secret_key = os.urandom(24)  # For session management
+app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))  # For session management
+
+# Initialize authentication
+auth_manager = AuthManager(app)
+setup_session_security(app)
+
+# Add CSRF token generator
+def generate_csrf_token():
+    if '_csrf_token' not in session:
+        session['_csrf_token'] = secrets.token_hex(16)
+    return session['_csrf_token']
+
+app.jinja_env.globals['csrf_token'] = generate_csrf_token
 
 @app.context_processor
 def utility_processor():
@@ -165,7 +180,126 @@ def get_metadata():
         'chapters': chapters
     }
 
+# Authentication routes
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        remember = request.form.get('remember', False)
+        
+        # CSRF protection
+        token = session.pop('_csrf_token', None)
+        if not token or token != request.form.get('csrf_token'):
+            return render_template('login.html', error='Invalid request. Please try again.')
+        
+        user, error = auth_manager.authenticate_user(username, password)
+        
+        if user:
+            login_user(user, remember=bool(remember))
+            next_page = request.args.get('next')
+            if not next_page or not next_page.startswith('/'):
+                next_page = url_for('index')
+            return redirect(next_page)
+        else:
+            return render_template('login.html', error=error)
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out successfully.', 'info')
+    return redirect(url_for('login'))
+
+# User management routes (superadmin only)
+@app.route('/users')
+@superadmin_required
+def manage_users():
+    users = auth_manager.get_all_users()
+    message = session.pop('user_message', None)
+    error = session.pop('user_error', None)
+    return render_template('users.html', users=users, message=message, error=error)
+
+@app.route('/users/create', methods=['POST'])
+@superadmin_required
+def create_user():
+    username = request.form.get('username', '').strip()
+    password = request.form.get('password', '')
+    role = request.form.get('role', 'user')
+    
+    success, message = auth_manager.create_user(username, password, role)
+    
+    if success:
+        session['user_message'] = message
+    else:
+        session['user_error'] = message
+    
+    return redirect(url_for('manage_users'))
+
+@app.route('/users/update', methods=['POST'])
+@superadmin_required
+def update_user():
+    username = request.form.get('username', '').strip()
+    role = request.form.get('role')
+    is_active = request.form.get('is_active') == 'true'
+    
+    success, message = auth_manager.update_user(username, role=role, is_active=is_active)
+    
+    if success:
+        session['user_message'] = message
+    else:
+        session['user_error'] = message
+    
+    return redirect(url_for('manage_users'))
+
+@app.route('/users/reset-password', methods=['POST'])
+@superadmin_required
+def reset_password():
+    username = request.form.get('username', '').strip()
+    password = request.form.get('password', '')
+    
+    success, message = auth_manager.update_user(username, password=password)
+    
+    if success:
+        session['user_message'] = f"Password reset successfully for user: {username}"
+    else:
+        session['user_error'] = message
+    
+    return redirect(url_for('manage_users'))
+
+@app.route('/users/<username>/unlock', methods=['POST'])
+@superadmin_required
+def unlock_user(username):
+    users = auth_manager.load_users()
+    if username in users:
+        users[username].locked_until = None
+        users[username].failed_attempts = 0
+        auth_manager.save_users(users)
+        session['user_message'] = f"User {username} has been unlocked."
+    else:
+        session['user_error'] = "User not found."
+    
+    return redirect(url_for('manage_users'))
+
+@app.route('/users/<username>/delete', methods=['POST'])
+@superadmin_required
+def delete_user(username):
+    success, message = auth_manager.delete_user(username)
+    
+    if success:
+        session['user_message'] = message
+    else:
+        session['user_error'] = message
+    
+    return redirect(url_for('manage_users'))
+
 @app.route('/')
+@login_required
 def index():
     metadata = get_metadata()
     questions = load_questions()
@@ -173,6 +307,7 @@ def index():
     return render_template('index.html', metadata=metadata)
 
 @app.route('/questions')
+@login_required
 def view_questions():
     all_questions = load_questions()
     metadata = get_metadata()
@@ -210,6 +345,7 @@ def view_questions():
                           tag_filter=tag_filter)
 
 @app.route('/question/<int:index>')
+@login_required
 def view_question(index):
     questions = load_questions()
     if 0 <= index < len(questions):
@@ -234,6 +370,7 @@ def view_question(index):
     return redirect(url_for('view_questions'))
 
 @app.route('/question/<int:index>/edit', methods=['GET', 'POST'])
+@login_required
 def edit_question(index):
     questions = load_questions()
     metadata = get_metadata()
@@ -312,6 +449,7 @@ def edit_question(index):
     return redirect(url_for('view_questions'))
 
 @app.route('/question/add', methods=['GET', 'POST'])
+@login_required
 def add_question():
     metadata = get_metadata()
     
@@ -359,6 +497,7 @@ def add_question():
     return render_template('add_question.html', metadata=metadata)
 
 @app.route('/question/<int:index>/delete', methods=['POST'])
+@login_required
 def delete_question(index):
     questions = load_questions()
     
@@ -386,6 +525,7 @@ def delete_question(index):
     return redirect(f"{url_for('view_questions')}{filter_query_string}")
 
 @app.route('/tags')
+@login_required
 def manage_tags():
     questions = load_questions()
     tag_data = load_tag_data()
@@ -418,6 +558,7 @@ def manage_tags():
                          tag_error=tag_error)
 
 @app.route('/tag/<path:tag>')
+@login_required
 def view_tag(tag):
     questions = load_questions()
     metadata = get_metadata()
@@ -434,6 +575,7 @@ def view_tag(tag):
                           metadata=metadata)
 
 @app.route('/tag/update', methods=['POST'])
+@login_required
 def update_tag():
     old_name = request.form.get('old_name')
     new_name = request.form.get('new_name', '').strip()
@@ -473,6 +615,7 @@ def update_tag():
     return redirect(url_for('manage_tags'))
 
 @app.route('/tag/delete', methods=['POST'])
+@login_required
 def delete_tag():
     tag = request.form.get('tag')
     
@@ -503,6 +646,7 @@ def delete_tag():
     return redirect(url_for('manage_tags'))
 
 @app.route('/generate', methods=['GET', 'POST'])
+@login_required
 def generate_exam():
     metadata = get_metadata()
     
@@ -621,6 +765,7 @@ def create_word_document(exam_questions, **kwargs):
 
 # Settings route for API key settings and file uploads
 @app.route('/settings', methods=['GET', 'POST'])
+@login_required
 def settings():
     if request.method == 'POST':
         # Handle OpenAI API key update
@@ -720,6 +865,7 @@ def settings():
 
 # Route for AI reformatting
 @app.route('/question/<int:index>/reformat', methods=['POST'])
+@login_required
 def reformat_question(index):
     questions = load_questions()
     
@@ -794,6 +940,7 @@ def reformat_question(index):
 
 # Route for applying a reformatted question
 @app.route('/question/<int:index>/apply_reformat', methods=['POST'])
+@login_required
 def apply_reformat(index):
     questions = load_questions()
     
@@ -832,6 +979,7 @@ def apply_reformat(index):
 
 # Route for reverting back to original text
 @app.route('/question/<int:index>/revert', methods=['POST'])
+@login_required
 def revert_question(index):
     questions = load_questions()
     
@@ -883,18 +1031,21 @@ def revert_question(index):
 
 # Route for downloading questions.json file
 @app.route('/download_questions')
+@login_required
 def download_questions():
     questions_path = os.path.join(current_dir, 'questions.json')
     return send_file(questions_path, as_attachment=True, download_name="questions.json")
 
 # Route for downloading tags_and_chapters.json file
 @app.route('/download_tags')
+@login_required
 def download_tags():
     tags_path = os.path.join(current_dir, 'tags_and_chapters.json')
     return send_file(tags_path, as_attachment=True, download_name="tags_and_chapters.json")
 
 # Tag Centralizer page
 @app.route('/tag-centralizer')
+@login_required
 def tag_centralizer():
     tag_data = load_tag_data()
     questions = load_questions()
@@ -920,6 +1071,7 @@ def tag_centralizer():
 
 # Chapter management routes
 @app.route('/chapter/create', methods=['POST'])
+@login_required
 def create_chapter():
     name = request.form.get('name', '').strip()
     description = request.form.get('description', '').strip()
@@ -947,6 +1099,7 @@ def create_chapter():
     return redirect(url_for('tag_centralizer'))
 
 @app.route('/chapter/<slug>/edit', methods=['POST'])
+@login_required
 def edit_chapter(slug):
     tag_data = load_tag_data()
     
@@ -994,6 +1147,7 @@ def edit_chapter(slug):
     return redirect(url_for('tag_centralizer'))
 
 @app.route('/chapter/<slug>/delete', methods=['POST'])
+@login_required
 def delete_chapter(slug):
     chapter_id = get_chapter_id_from_slug(slug)
     if not chapter_id:
@@ -1019,6 +1173,7 @@ def delete_chapter(slug):
 
 # Advanced tag management routes
 @app.route('/tag/merge', methods=['POST'])
+@login_required
 def merge_tags():
     source_tags = request.form.getlist('source_tags')
     destination_tag = request.form.get('destination_tag', '').strip()
@@ -1094,6 +1249,7 @@ def merge_tags():
     return redirect(url_for('tag_centralizer'))
 
 @app.route('/tag/create', methods=['POST'])
+@login_required
 def create_tag():
     tag_name = request.form.get('tag_name', '').strip()
     tag_description = request.form.get('tag_description', '').strip()
@@ -1113,6 +1269,7 @@ def create_tag():
     return redirect(url_for('tag_centralizer'))
 
 @app.route('/tag/add-orphaned', methods=['POST'])
+@login_required
 def add_orphaned_tags():
     orphaned_tags = request.form.getlist('orphaned_tags')
     

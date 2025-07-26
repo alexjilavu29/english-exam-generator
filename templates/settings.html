@@ -38,6 +38,19 @@
     <div class="container">
         <h1 class="mb-4">Settings</h1>
         
+        {% if current_user.is_superadmin() %}
+        <!-- User Management Section -->
+        <div class="alert alert-info d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <i class="fas fa-shield-alt me-2"></i>
+                <strong>Superadmin Access:</strong> You have access to advanced user management features.
+            </div>
+            <a href="{{ url_for('manage_users') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-users me-1"></i> Manage Users
+            </a>
+        </div>
+        {% endif %}
+        
         <!-- Success/Error Messages -->
         {% if upload_message %}
         <div class="alert alert-success alert-dismissible fade show" role="alert">

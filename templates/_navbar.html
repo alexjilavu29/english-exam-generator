@@ -72,13 +72,13 @@
                     <a class="nav-link dropdown-toggle px-3 py-2 d-flex align-items-center" 
                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-circle me-2"></i>
-                        <span class="fw-semibold">{{ current_user.username }}</span>
-                        {% if current_user.is_superadmin() %}
+                        <span class="fw-semibold">{{ current_user.username if current_user and current_user.is_authenticated else "Guest" }}</span>
+                        {% if current_user and current_user.is_authenticated and current_user.is_superadmin() %}
                         <span class="badge bg-danger ms-2">Admin</span>
                         {% endif %}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
-                        {% if current_user.is_superadmin() %}
+                        {% if current_user and current_user.is_authenticated and current_user.is_superadmin() %}
                         <li><a class="dropdown-item py-2 {% if active_page == 'users' %}active{% endif %}" href="/users">
                             <i class="bi bi-people me-2"></i>User Management
                         </a></li>

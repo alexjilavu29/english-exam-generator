@@ -70,6 +70,15 @@ app.jinja_env.globals['csrf_token'] = generate_csrf_token
 def utility_processor():
     return dict(slugify=slugify)
 
+@app.context_processor
+def inject_user():
+    from flask_login import current_user
+    try:
+        return dict(current_user=current_user)
+    except Exception:
+        # Fallback if current_user fails to load
+        return dict(current_user=None)
+
 # Initialize AI formatter with API keys from .env
 openai_api_key = os.environ.get('OPENAI_API_KEY', '')
 gemini_api_key = os.environ.get('GEMINI_API_KEY', '')

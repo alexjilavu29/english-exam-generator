@@ -99,8 +99,13 @@ class AuthManager:
         def load_user(username):
             return self.get_user(username)
         
-        # Initialize with environment variable users if users file doesn't exist
+        # Ensure users are initialized on startup
+        self.check_and_initialize_users()
+    
+    def check_and_initialize_users(self):
+        """Check if the users file exists and initialize if not."""
         if not os.path.exists(self.users_file):
+            print("Users file not found. Initializing default users...")
             self.initialize_default_users()
     
     def initialize_default_users(self):

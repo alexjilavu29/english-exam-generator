@@ -54,6 +54,18 @@ template_dir = os.path.join(current_dir, 'templates')
 app = Flask(__name__, template_folder=template_dir)
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))  # For session management
 
+def initialize_app():
+    """Creates essential directories for the application to run."""
+    # Create templates directory if it doesn't exist
+    os.makedirs(template_dir, exist_ok=True)
+    
+    # Create output directory for Word documents
+    output_dir = os.path.join(current_dir, 'output')
+    os.makedirs(output_dir, exist_ok=True)
+
+# Initialize application directories and user database
+initialize_app()
+
 # Initialize authentication
 auth_manager = AuthManager(app)
 setup_session_security(app)
@@ -1296,20 +1308,19 @@ def add_orphaned_tags():
     
     return redirect(url_for('tag_centralizer'))
 
-if __name__ == '__main__':
+def main():
     # Set up argument parser
     parser = argparse.ArgumentParser(description='English Exam Generator')
     parser.add_argument('--port', type=int, default=5001,
                         help='Port number to run the server on (default: 5001)')
     args = parser.parse_args()
     
-    # Create templates directory if it doesn't exist
-    os.makedirs(template_dir, exist_ok=True)
-    
-    # Create output directory for Word documents
-    output_dir = os.path.join(current_dir, 'output')
-    os.makedirs(output_dir, exist_ok=True)
+    # The initialize_app() call is now at the top level,
+    # so it doesn't need to be called from here for local execution.
     
     print(f"Starting application with template directory: {template_dir}")
     print(f"Server running on port: {args.port}")
     app.run(host='0.0.0.0', port=args.port, debug=True)
+
+if __name__ == '__main__':
+    main()

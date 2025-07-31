@@ -6,21 +6,30 @@ from functools import wraps
 from flask import session, redirect, url_for, request, current_app
 from flask_login import UserMixin, LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
+from dotenv import load_dotenv
+
+# Get the absolute path of the directory where this script resides
+_AUTH_DIR = os.path.dirname(os.path.abspath(__file__))
+KEY_FILE_PATH = os.path.join(_AUTH_DIR, '.auth_key')
+USERS_FILE_PATH = os.path.join(_AUTH_DIR, 'users.json')
+
+# Load environment variables
+load_dotenv()
 
 # Generate or load encryption key for additional data protection
 def get_or_create_key():
-    key_file = '.auth_key'
-    if os.path.exists(key_file):
-        with open(key_file, 'rb') as f:
-            return f.read()
-    else:
+    """Create or load the Fernet key from .auth_key using an absolute path."""
+    try:
+        with open(KEY_FILE_PATH, 'rb') as key_file:
+            key = key_file.read()
+    except FileNotFoundError:
         key = Fernet.generate_key()
-        with open(key_file, 'wb') as f:
-            f.write(key)
+        with open(KEY_FILE_PATH, 'wb') as key_file:
+            key_file.write(key)
         # Set restrictive permissions
-        os.chmod(key_file, 0o600)
-        return key
+        os.chmod(KEY_FILE_PATH, 0o600)
+    return key
 
 # Initialize encryption
 CIPHER_SUITE = Fernet(get_or_create_key())
@@ -76,7 +85,7 @@ class User(UserMixin):
 
 class AuthManager:
     def __init__(self, app=None):
-        self.users_file = 'users.json'
+        self.users_file = USERS_FILE_PATH  # Use absolute path
         self.login_manager = LoginManager()
         self.app = app
         if app is not None:

@@ -4,8 +4,10 @@ import argparse
 from cryptography.fernet import Fernet, InvalidToken
 from werkzeug.security import generate_password_hash
 
-USERS_FILE = 'users.json'
-KEY_FILE = '.auth_key'
+# Define absolute paths for user and key files
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+USERS_FILE = os.path.join(_SCRIPT_DIR, 'users.json')
+KEY_FILE = os.path.join(_SCRIPT_DIR, '.auth_key')
 
 def load_key():
     """Loads the encryption key from .auth_key."""

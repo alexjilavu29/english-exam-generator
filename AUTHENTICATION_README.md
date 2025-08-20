@@ -53,7 +53,8 @@ USER1_PASSWORD=AnotherSecurePassword123!
 - Recommended: Mix of uppercase, lowercase, numbers, and symbols
 
 ### Session Security
-- Sessions expire after 2 hours
+- Sessions expire after 8 hours by default
+- "Remember me" extends session to 24 hours
 - 30 minutes of inactivity triggers re-authentication
 - Session hijacking protection (user agent verification)
 
@@ -100,7 +101,7 @@ USER1_PASSWORD=AnotherSecurePassword123!
 - `SESSION_COOKIE_SECURE`: Set to True for HTTPS only (default: True)
 - `SESSION_COOKIE_HTTPONLY`: Prevent JavaScript access (default: True)
 - `SESSION_COOKIE_SAMESITE`: CSRF protection (default: Lax)
-- `PERMANENT_SESSION_LIFETIME`: Session timeout in seconds (default: 7200)
+- `PERMANENT_SESSION_LIFETIME`: Default session timeout in seconds (default: 28800, extended to 86400 with "Remember me")
 
 ## File Structure
 

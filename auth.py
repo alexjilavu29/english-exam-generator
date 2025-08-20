@@ -102,7 +102,7 @@ class AuthManager:
         app.config['SESSION_COOKIE_SECURE'] = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'  # HTTPS only in production
         app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access
         app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
-        app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)  # Session timeout
+        app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=8)  # Session timeout
         
         @self.login_manager.user_loader
         def load_user(username):
@@ -347,15 +347,7 @@ def setup_session_security(app):
         if request.endpoint == 'login':
             return
         
-        # Track session activity
-        if 'last_activity' in session:
-            last_activity = datetime.fromisoformat(session['last_activity'])
-            if datetime.utcnow() - last_activity > timedelta(minutes=30):
-                # Force re-authentication after 30 minutes of inactivity
-                session.clear()
-                return redirect(url_for('login'))
-        
-        session['last_activity'] = datetime.utcnow().isoformat()
+        # Session activity tracking removed - no forced re-authentication
         
         # Check for session hijacking attempts (user agent change)
         if 'user_agent' in session:

@@ -1,3 +1,8 @@
 __pycache__
 .DS_Store
 *.env
+old_versions/
+users.json
+.auth_key
+questions.json
+tags_and_chapters.json

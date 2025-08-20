@@ -6,6 +6,7 @@ import argparse
 import re
 import secrets
 from unicodedata import normalize
+from datetime import timedelta
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file, session, flash
 from flask_login import login_required, current_user, login_user, logout_user
@@ -221,6 +222,17 @@ def login():
         
         if user:
             login_user(user, remember=bool(remember))
+            
+            # Set different session duration based on remember checkbox
+            if remember:
+                # Extend to 24 hours when remember is checked
+                session.permanent = True
+                app.permanent_session_lifetime = timedelta(hours=24)
+            else:
+                # Default 8 hours for regular sessions
+                session.permanent = True
+                app.permanent_session_lifetime = timedelta(hours=8)
+            
             next_page = request.args.get('next')
             if not next_page or not next_page.startswith('/'):
                 next_page = url_for('index')
@@ -338,10 +350,45 @@ def view_questions():
     category_filter = request.args.get('category')
     year_filter = request.args.get('year')
     tag_filter = request.args.get('tag')
+    search_query = request.args.get('search', '').strip()
     
     # Start with all questions
     filtered_questions = all_questions.copy()
     
+    # Apply search filter first if provided
+    if search_query:
+        search_lower = search_query.lower()
+        filtered_questions = []
+        for q in all_questions:
+            # Search in question body
+            if search_lower in q['body'].lower():
+                filtered_questions.append(q)
+                continue
+            # Search in topic
+            if search_lower in q['topic'].lower():
+                filtered_questions.append(q)
+                continue
+            # Search in category
+            if search_lower in q['category'].lower():
+                filtered_questions.append(q)
+                continue
+            # Search in year
+            if search_lower in str(q['year']):
+                filtered_questions.append(q)
+                continue
+            # Search in tags
+            if 'tags' in q and q['tags']:
+                for tag in q['tags']:
+                    if search_lower in tag.lower():
+                        filtered_questions.append(q)
+                        break
+            # Search in answers
+            for answer in q['answers']:
+                if search_lower in answer.lower():
+                    filtered_questions.append(q)
+                    break
+    
+    # Apply other filters
     if topic_filter:
         filtered_questions = [q for q in filtered_questions if q['topic'] == topic_filter]
     if category_filter:
@@ -349,7 +396,12 @@ def view_questions():
     if year_filter and year_filter.isdigit():
         filtered_questions = [q for q in filtered_questions if q['year'] == int(year_filter)]
     if tag_filter:
-        filtered_questions = [q for q in filtered_questions if 'tags' in q and tag_filter in q['tags']]
+        if tag_filter == '__NO_TAGS__':
+            # Filter for questions without any tags
+            filtered_questions = [q for q in filtered_questions if 'tags' not in q or not q['tags']]
+        else:
+            # Filter for questions with the specific tag
+            filtered_questions = [q for q in filtered_questions if 'tags' in q and tag_filter in q['tags']]
     
     # Create a list of (question, original_index) tuples
     indexed_questions = []
@@ -363,7 +415,8 @@ def view_questions():
                           topic_filter=topic_filter,
                           category_filter=category_filter,
                           year_filter=year_filter,
-                          tag_filter=tag_filter)
+                          tag_filter=tag_filter,
+                          search_query=search_query)
 
 @app.route('/question/<int:index>')
 @login_required
@@ -377,6 +430,7 @@ def view_question(index):
         # If we came from a filtered view, also pass the filters back so we can return to the filtered list
         if filtered_query:
             filters = {
+                'search': request.args.get('search', ''),
                 'topic': request.args.get('topic', ''),
                 'category': request.args.get('category', ''),
                 'year': request.args.get('year', ''),
@@ -401,6 +455,7 @@ def edit_question(index):
     filter_params = {}
     if filtered_query:
         filter_params = {
+            'search': request.args.get('search', ''),
             'topic': request.args.get('topic', ''),
             'category': request.args.get('category', ''),
             'year': request.args.get('year', ''),
@@ -526,6 +581,7 @@ def delete_question(index):
     filtered_query = request.args.get('filtered', 'false') == 'true'
     if filtered_query:
         filter_params = {
+            'search': request.args.get('search', ''),
             'topic': request.args.get('topic', ''),
             'category': request.args.get('category', ''),
             'year': request.args.get('year', ''),
@@ -544,6 +600,86 @@ def delete_question(index):
         save_questions(questions)
     
     return redirect(f"{url_for('view_questions')}{filter_query_string}")
+
+@app.route('/api/search_questions')
+@login_required
+def search_questions_api():
+    """API endpoint for real-time question searching"""
+    search_query = request.args.get('q', '').strip()
+    limit = min(int(request.args.get('limit', 50)), 100)  # Max 100 results
+    
+    if not search_query or len(search_query) < 2:
+        return jsonify({'results': [], 'total': 0})
+    
+    all_questions = load_questions()
+    search_lower = search_query.lower()
+    matched_questions = []
+    
+    for i, q in enumerate(all_questions):
+        match_score = 0
+        match_fields = []
+        
+        # Search in question body (highest priority)
+        if search_lower in q['body'].lower():
+            match_score += 10
+            match_fields.append('body')
+        
+        # Search in topic
+        if search_lower in q['topic'].lower():
+            match_score += 5
+            match_fields.append('topic')
+        
+        # Search in category
+        if search_lower in q['category'].lower():
+            match_score += 3
+            match_fields.append('category')
+        
+        # Search in year
+        if search_lower in str(q['year']):
+            match_score += 2
+            match_fields.append('year')
+        
+        # Search in tags
+        if 'tags' in q and q['tags']:
+            for tag in q['tags']:
+                if search_lower in tag.lower():
+                    match_score += 4
+                    match_fields.append('tags')
+                    break
+        
+        # Search in answers
+        for answer in q['answers']:
+            if search_lower in answer.lower():
+                match_score += 1
+                match_fields.append('answers')
+                break
+        
+        if match_score > 0:
+            # Truncate body for preview
+            body_preview = q['body'][:100] + '...' if len(q['body']) > 100 else q['body']
+            
+            matched_questions.append({
+                'index': i,
+                'body': body_preview,
+                'topic': q['topic'],
+                'category': q['category'],
+                'year': q['year'],
+                'tags': q.get('tags', []),
+                'match_score': match_score,
+                'match_fields': match_fields
+            })
+    
+    # Sort by match score (descending) then by index
+    matched_questions.sort(key=lambda x: (-x['match_score'], x['index']))
+    
+    # Apply limit
+    limited_results = matched_questions[:limit]
+    
+    return jsonify({
+        'results': limited_results,
+        'total': len(matched_questions),
+        'limited': len(matched_questions) > limit
+    })
 
 @app.route('/tags')
 @login_required

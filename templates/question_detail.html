@@ -87,6 +87,7 @@
                         <li class="breadcrumb-item"><a href="/questions">Questions</a></li>
                         {% if filtered %}
                         {% set filter_params = [] %}
+                        {% if filters.search %}{% set _ = filter_params.append('search=' + filters.search|urlencode) %}{% endif %}
                         {% if filters.topic %}{% set _ = filter_params.append('topic=' + filters.topic) %}{% endif %}
                         {% if filters.category %}{% set _ = filter_params.append('category=' + filters.category) %}{% endif %}
                         {% if filters.year %}{% set _ = filter_params.append('year=' + filters.year) %}{% endif %}
@@ -102,12 +103,17 @@
                         <div>
                             <span class="badge bg-primary">{{ question.topic }}</span>
                             <span class="badge bg-secondary">{{ question.category }} ({{ question.year }})</span>
-                            {% if 'tags' in question and 'Reformatted with AI' in question.tags %}
-                            <span class="badge bg-info">Reformatted with AI</span>
+                            {% if 'tags' in question and question.tags %}
+                            <div class="mt-2">
+                                <small class="text-muted">Tags:</small>
+                                {% for tag in question.tags %}
+                                <a href="/tag/{{ tag|urlencode }}" class="badge bg-warning text-dark text-decoration-none me-1" title="View all questions with this tag">{{ tag }}</a>
+                                {% endfor %}
+                            </div>
                             {% endif %}
                         </div>
                         <div>
-                            <a href="/question/{{ index }}/edit{% if filtered %}?filtered=true{% if filters.topic %}&topic={{ filters.topic }}{% endif %}{% if filters.category %}&category={{ filters.category }}{% endif %}{% if filters.year %}&year={{ filters.year }}{% endif %}{% if filters.tag %}&tag={{ filters.tag }}{% endif %}{% endif %}" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="/question/{{ index }}/edit{% if filtered %}?filtered=true{% if filters.search %}&search={{ filters.search|urlencode }}{% endif %}{% if filters.topic %}&topic={{ filters.topic }}{% endif %}{% if filters.category %}&category={{ filters.category }}{% endif %}{% if filters.year %}&year={{ filters.year }}{% endif %}{% if filters.tag %}&tag={{ filters.tag }}{% endif %}{% endif %}" class="btn btn-sm btn-warning">Edit</a>
                             <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                                 Delete
                             </button>
@@ -161,7 +167,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form action="/question/{{ index }}/delete{% if filtered %}?filtered=true{% if filters.topic %}&topic={{ filters.topic }}{% endif %}{% if filters.category %}&category={{ filters.category }}{% endif %}{% if filters.year %}&year={{ filters.year }}{% endif %}{% if filters.tag %}&tag={{ filters.tag }}{% endif %}{% endif %}" method="post">
+                    <form action="/question/{{ index }}/delete{% if filtered %}?filtered=true{% if filters.search %}&search={{ filters.search|urlencode }}{% endif %}{% if filters.topic %}&topic={{ filters.topic }}{% endif %}{% if filters.category %}&category={{ filters.category }}{% endif %}{% if filters.year %}&year={{ filters.year }}{% endif %}{% if filters.tag %}&tag={{ filters.tag }}{% endif %}{% endif %}" method="post">
                         <button type="submit" class="btn btn-danger">Delete</button>
                     </form>
                 </div>

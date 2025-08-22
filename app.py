@@ -109,8 +109,26 @@ ai_formatter = AIFormatter(
     context_limit=context_limit
 )
 
-# For storing original texts when reformatting
+# For storing original texts when reformatting - using question content hash for unique identification
 original_texts = {}
+
+def get_question_id(question):
+    """Generate a unique identifier for a question based on its content."""
+    import hashlib
+    
+    # Create a unique identifier based on question content that shouldn't change
+    content = f"{question.get('body', '')}{question.get('answers', [])}{question.get('correct_answer', '')}"
+    return hashlib.md5(content.encode('utf-8')).hexdigest()
+
+def cleanup_original_texts():
+    """Clean up orphaned entries in original_texts dictionary."""
+    if len(original_texts) > 100:  # Only clean up if dictionary gets large
+        questions = load_questions()
+        valid_ids = {get_question_id(q) for q in questions}
+        orphaned_keys = [k for k in original_texts.keys() if k not in valid_ids]
+        for key in orphaned_keys:
+            del original_texts[key]
+        print(f"Cleaned up {len(orphaned_keys)} orphaned original_texts entries")
 
 # Load questions from JSON file
 def load_questions():
@@ -350,45 +368,10 @@ def view_questions():
     category_filter = request.args.get('category')
     year_filter = request.args.get('year')
     tag_filter = request.args.get('tag')
-    search_query = request.args.get('search', '').strip()
     
     # Start with all questions
     filtered_questions = all_questions.copy()
     
-    # Apply search filter first if provided
-    if search_query:
-        search_lower = search_query.lower()
-        filtered_questions = []
-        for q in all_questions:
-            # Search in question body
-            if search_lower in q['body'].lower():
-                filtered_questions.append(q)
-                continue
-            # Search in topic
-            if search_lower in q['topic'].lower():
-                filtered_questions.append(q)
-                continue
-            # Search in category
-            if search_lower in q['category'].lower():
-                filtered_questions.append(q)
-                continue
-            # Search in year
-            if search_lower in str(q['year']):
-                filtered_questions.append(q)
-                continue
-            # Search in tags
-            if 'tags' in q and q['tags']:
-                for tag in q['tags']:
-                    if search_lower in tag.lower():
-                        filtered_questions.append(q)
-                        break
-            # Search in answers
-            for answer in q['answers']:
-                if search_lower in answer.lower():
-                    filtered_questions.append(q)
-                    break
-    
-    # Apply other filters
     if topic_filter:
         filtered_questions = [q for q in filtered_questions if q['topic'] == topic_filter]
     if category_filter:
@@ -396,12 +379,7 @@ def view_questions():
     if year_filter and year_filter.isdigit():
         filtered_questions = [q for q in filtered_questions if q['year'] == int(year_filter)]
     if tag_filter:
-        if tag_filter == '__NO_TAGS__':
-            # Filter for questions without any tags
-            filtered_questions = [q for q in filtered_questions if 'tags' not in q or not q['tags']]
-        else:
-            # Filter for questions with the specific tag
-            filtered_questions = [q for q in filtered_questions if 'tags' in q and tag_filter in q['tags']]
+        filtered_questions = [q for q in filtered_questions if 'tags' in q and tag_filter in q['tags']]
     
     # Create a list of (question, original_index) tuples
     indexed_questions = []
@@ -415,8 +393,7 @@ def view_questions():
                           topic_filter=topic_filter,
                           category_filter=category_filter,
                           year_filter=year_filter,
-                          tag_filter=tag_filter,
-                          search_query=search_query)
+                          tag_filter=tag_filter)
 
 @app.route('/question/<int:index>')
 @login_required
@@ -430,7 +407,6 @@ def view_question(index):
         # If we came from a filtered view, also pass the filters back so we can return to the filtered list
         if filtered_query:
             filters = {
-                'search': request.args.get('search', ''),
                 'topic': request.args.get('topic', ''),
                 'category': request.args.get('category', ''),
                 'year': request.args.get('year', ''),
@@ -455,7 +431,6 @@ def edit_question(index):
     filter_params = {}
     if filtered_query:
         filter_params = {
-            'search': request.args.get('search', ''),
             'topic': request.args.get('topic', ''),
             'category': request.args.get('category', ''),
             'year': request.args.get('year', ''),
@@ -581,7 +556,6 @@ def delete_question(index):
     filtered_query = request.args.get('filtered', 'false') == 'true'
     if filtered_query:
         filter_params = {
-            'search': request.args.get('search', ''),
             'topic': request.args.get('topic', ''),
             'category': request.args.get('category', ''),
             'year': request.args.get('year', ''),
@@ -600,86 +574,6 @@ def delete_question(index):
         save_questions(questions)
     
     return redirect(f"{url_for('view_questions')}{filter_query_string}")
-
-@app.route('/api/search_questions')
-@login_required
-def search_questions_api():
-    """API endpoint for real-time question searching"""
-    search_query = request.args.get('q', '').strip()
-    limit = min(int(request.args.get('limit', 50)), 100)  # Max 100 results
-    
-    if not search_query or len(search_query) < 2:
-        return jsonify({'results': [], 'total': 0})
-    
-    all_questions = load_questions()
-    search_lower = search_query.lower()
-    matched_questions = []
-    
-    for i, q in enumerate(all_questions):
-        match_score = 0
-        match_fields = []
-        
-        # Search in question body (highest priority)
-        if search_lower in q['body'].lower():
-            match_score += 10
-            match_fields.append('body')
-        
-        # Search in topic
-        if search_lower in q['topic'].lower():
-            match_score += 5
-            match_fields.append('topic')
-        
-        # Search in category
-        if search_lower in q['category'].lower():
-            match_score += 3
-            match_fields.append('category')
-        
-        # Search in year
-        if search_lower in str(q['year']):
-            match_score += 2
-            match_fields.append('year')
-        
-        # Search in tags
-        if 'tags' in q and q['tags']:
-            for tag in q['tags']:
-                if search_lower in tag.lower():
-                    match_score += 4
-                    match_fields.append('tags')
-                    break
-        
-        # Search in answers
-        for answer in q['answers']:
-            if search_lower in answer.lower():
-                match_score += 1
-                match_fields.append('answers')
-                break
-        
-        if match_score > 0:
-            # Truncate body for preview
-            body_preview = q['body'][:100] + '...' if len(q['body']) > 100 else q['body']
-            
-            matched_questions.append({
-                'index': i,
-                'body': body_preview,
-                'topic': q['topic'],
-                'category': q['category'],
-                'year': q['year'],
-                'tags': q.get('tags', []),
-                'match_score': match_score,
-                'match_fields': match_fields
-            })
-    
-    # Sort by match score (descending) then by index
-    matched_questions.sort(key=lambda x: (-x['match_score'], x['index']))
-    
-    # Apply limit
-    limited_results = matched_questions[:limit]
-    
-    return jsonify({
-        'results': limited_results,
-        'total': len(matched_questions),
-        'limited': len(matched_questions) > limit
-    })
 
 @app.route('/tags')
 @login_required
@@ -1034,13 +928,15 @@ def reformat_question(index):
         is_regenerate = request_data.get('regenerate', False)
         
         # Store original text for potential reversion (only if first request)
-        if index not in original_texts:
+        # Use unique question ID instead of index to prevent data corruption
+        question_id = get_question_id(question)
+        if question_id not in original_texts:
             # If question already has an old_text field, use that as the original
             if 'old_text' in question:
-                original_texts[index] = question['old_text']
+                original_texts[question_id] = question['old_text']
             else:
                 # Otherwise use the current body
-                original_texts[index] = question['body']
+                original_texts[question_id] = question['body']
         
         try:
             # Get model and determine which API to use
@@ -1106,17 +1002,37 @@ def apply_reformat(index):
         new_text = request.json.get('text', '')
         
         if new_text:
+            # Get unique question ID to prevent data corruption from index shifting
+            question_id = get_question_id(question)
+            
+            # Additional validation: ensure the new text is different and reasonable
+            if new_text.strip() == question['body'].strip():
+                return jsonify({'error': 'New text is identical to current text'}), 400
+            
+            # Basic sanity check: ensure new text contains expected elements
+            if '.......' not in new_text and '...' not in new_text:
+                return jsonify({'error': 'Reformatted text appears to be missing the gap (dots)'}), 400
+            
             # Store original text in the question object if this is the first reformatting
             if 'old_text' not in question:
                 # If we already have the original in memory, use that
-                if index in original_texts:
-                    question['old_text'] = original_texts[index]
+                if question_id in original_texts:
+                    question['old_text'] = original_texts[question_id]
                 # Otherwise use the current body text
                 else:
                     question['old_text'] = question['body']
             
+            # Additional validation: ensure we're not overwriting old_text with wrong data
+            stored_original = original_texts.get(question_id, question['body'])
+            if 'old_text' in question and question['old_text'] != stored_original:
+                print(f"WARNING: old_text mismatch detected for question {index}")
+                print(f"  Stored in question: {question['old_text'][:50]}...")
+                print(f"  Stored in memory: {stored_original[:50]}...")
+                # Use the memory version as it's more reliable
+                question['old_text'] = stored_original
+            
             # Also store it in memory for the current session
-            original_texts[index] = question.get('old_text', question['body'])
+            original_texts[question_id] = question.get('old_text', question['body'])
             
             # Update question body
             question['body'] = new_text
@@ -1129,6 +1045,9 @@ def apply_reformat(index):
                 question['tags'].append('Reformatted with AI')
             
             save_questions(questions)
+            
+            # Periodically clean up orphaned entries
+            cleanup_original_texts()
             
             return jsonify({'success': True})
     
@@ -1161,26 +1080,29 @@ def revert_question(index):
             save_questions(questions)
             
             # Remove from original_texts dictionary if present
-            if index in original_texts:
-                del original_texts[index]
+            question_id = get_question_id(question)
+            if question_id in original_texts:
+                del original_texts[question_id]
             
             return jsonify({'success': True})
         # Fallback to the in-memory storage if old_text is not in the question
-        elif index in original_texts:
-            # Restore original text
-            question['body'] = original_texts[index]
-            
-            # Remove reformatting tag if it exists
-            if 'tags' in question and 'Reformatted with AI' in question['tags']:
-                question['tags'].remove('Reformatted with AI')
-                # Remove tags field if empty
-                if not question['tags']:
-                    del question['tags']
-            
-            save_questions(questions)
-            
-            # Remove from original_texts dictionary
-            del original_texts[index]
+        else:
+            question_id = get_question_id(question)
+            if question_id in original_texts:
+                # Restore original text
+                question['body'] = original_texts[question_id]
+                
+                # Remove reformatting tag if it exists
+                if 'tags' in question and 'Reformatted with AI' in question['tags']:
+                    question['tags'].remove('Reformatted with AI')
+                    # Remove tags field if empty
+                    if not question['tags']:
+                        del question['tags']
+                
+                save_questions(questions)
+                
+                # Remove from original_texts dictionary
+                del original_texts[question_id]
             
             return jsonify({'success': True})
     

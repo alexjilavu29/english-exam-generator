@@ -39,9 +39,12 @@ No additional JSON keys, Markdown, or comments.
 CONTEXT_PROMPT_SECTION = """
 
 **CONTEXT**
-Here are some previously reformatted questions for reference. Learn from these examples to understand the style and quality expected:
+Here are some previously reformatted questions for reference. Use these ONLY to understand the reformatting style and quality expected. 
+DO NOT copy or mix any text from these examples into your reformulations of the current question:
 
 {context_examples}
+
+IMPORTANT: Create reformulations ONLY for the current question provided above. Do not use any text from the context examples.
 """
 
 class AIFormatter:
@@ -112,9 +115,23 @@ class AIFormatter:
         # Find questions with "Reformatted with AI" tag
         for q in questions:
             if q.get('tags') and 'Reformatted with AI' in q.get('tags', []):
-                # Skip the current question
-                if q.get('body') != current_question.get('body'):
-                    context_questions.append(q)
+                # Skip the current question by comparing multiple fields to ensure uniqueness
+                current_body = current_question.get('body', '')
+                current_answers = current_question.get('answers', [])
+                current_old_text = current_question.get('old_text', '')
+                
+                q_body = q.get('body', '')
+                q_answers = q.get('answers', [])
+                q_old_text = q.get('old_text', '')
+                
+                # Skip if this is the same question (check multiple fields)
+                if (q_body == current_body or 
+                    q_old_text == current_body or 
+                    (current_old_text and q_body == current_old_text) or
+                    (q_answers == current_answers and len(current_answers) > 0)):
+                    continue
+                    
+                context_questions.append(q)
         
         # Limit the number of context examples
         context_questions = context_questions[:self.context_limit]
@@ -122,12 +139,14 @@ class AIFormatter:
         if not context_questions:
             return ""
         
-        # Format context examples
+        # Format context examples more safely - only show the reformatted versions
+        # to avoid AI model confusion with original texts from other questions
         examples = []
         for i, q in enumerate(context_questions, 1):
-            original = q.get('old_text', 'N/A')
             reformatted = q.get('body', 'N/A')
-            examples.append(f"Example {i}:\nOriginal: {original}\nReformatted: {reformatted}")
+            # Only show the reformatted version, not the original text
+            # to prevent AI from mixing up original texts between questions
+            examples.append(f"Example {i} (reformatted style): {reformatted}")
         
         return "\n\n".join(examples)
     
